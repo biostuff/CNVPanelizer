@@ -90,16 +90,14 @@ BedToGenomicRanges <- function(panelBedFilepath, ampliconColumn, split = ";") {
 }
 
 #load the files you want to analyze
-ReadCountsFromBam <- function(bamFilenames, sampleNames1, gr, ampliconNames = elementMetadata(gr)$ampliconNames, removeDup = FALSE) {
-#ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames = elementMetadata(gr)$ampliconNames, removeDup = FALSE) {
+ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames = elementMetadata(gr)$ampliconNames, removeDup = FALSE) {
 #ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames = elementMetadata(gr)["ampliconNames"], removeDup = FALSE) {
     # TODO Because of package check complaints
     i <- NULL
     curbam = foreach(i = seq_along(bamFilenames), .combine = cbind) %do% {
         countBamInGRanges(bamFilenames[i], gr, remove.dup = removeDup, min.mapq = 20, get.width = TRUE)
     }
-#    colnames(curbam) = sampleNames
-    colnames(curbam) = sampleNames1
+    colnames(curbam) = sampleNames
     rownames(curbam) = ampliconNames
     return(curbam)
 }
