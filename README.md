@@ -30,6 +30,9 @@ library(CNVPanelizer)
 ?CNVPanelizer
 ```
 
+## Contributors
+
+
 
 ## License
 
