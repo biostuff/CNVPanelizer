@@ -4,58 +4,50 @@
   CombinedNormalizedCounts
 }
 \description{
-  It combines the rows of the matrix of reference read counts and the matrix of sample reads and normalized them together.
+  This function makes use of cn.mops::normalizeChromosomes to normalize the read counts of all samples and references
+  to the same median read count.
 }
 \usage{
-CombinedNormalizedCounts(sampleCounts, referenceCounts, gr, amplicons)
+CombinedNormalizedCounts(sampleCounts, referenceCounts, amplicons = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{sampleCounts}{
-      Matrix with sample read counts
+      Vector or matrix  with sample read counts (rows: amplicons, columns: samples)
   }
     \item{referenceCounts}{
-      Matrix with reference read counts
-  }
-    \item{gr}{
-      A genomic ranges object
-  }
+      Matrix with reference read counts (rows: amplicons, columns: samples)
+    }
     \item{amplicons}{
-      A vector with the amplicon names used at the reference and sample matrices
+      A vector with the amplicon names used for the reference and sample matrices
   }
 }
-\details{
-TODO create some 
-  If necessary, more details than the description above
-}
+
 \value{
-A normalized matrix composed of data from the reference and sample matrices
+A list object with
+\item{comp1 }{The  normalized sample matrix/vector}
+\item{comp2 }{the median normalized read count matrix of the reference samples}
 }
-\references{
-TODO create some
-}
+
 \author{
   Thomas Wolf, Cristiano Oliveira
 }
-\note{
-  TODO create some
-}
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{
-TODO create some
- objects to See Also as \code{\link{help}},
-}
 \examples{
-%% TODO create some
-# normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
-#                                                     referenceReadCounts,
-#                                                     genomicRangesFromBed,
-#                                                     amplicons = ampliconNames)
+
+\dontrun{
+#load the example data
+data(exampleData)
+normalizedList <-  CombinedNormalizedCounts(sampleReadCounts,
+                                                     referenceReadCounts,
+ normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
+                                                     referenceReadCounts,
+                                                     genomicRangesFromBed,
+                                                     amplicons = ampliconNames)
 
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+
+
+}
+

@@ -21,32 +21,23 @@ BedToGenomicRanges(panelBedFilepath, ampliconColumn, split)
      Char used as separator. It is ";" by default.
 }
 }
-\details{
-TODO create some
-}
+
 \value{
 A \code{GenomicRanges} object containing information about the amplicons described at the bed file.
 }
-\references{
-TODO create some
-}
+
 \author{
 Thomas Wolf, Cristiano Oliveira
 }
-\note{
-TODO create some
-}
 
-\seealso{
- %%  \code{\link{GenomicRanges}}
- TODO create some
-}
+
 \examples{
+
+
+\dontrun{
 
 bedFilepath <- file.path("someFile.bed")
 ampliconColumn <- 4
-# TODO how to make this code to not be executed work..?!?!!?
-\dontrun{
 BedToGenomicRanges(bedFilepath, ampliconColumn)
 }
 }

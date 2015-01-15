@@ -5,7 +5,8 @@
   ReportTables
 }
 \description{
-  ReportTables
+  This function generates the final report of the copy number detection procedure.
+  One data frame is generated for each sample of interest.
 }
 \usage{
 ReportTables(bootList,
@@ -18,13 +19,13 @@ ReportTables(bootList,
 %% TODO create some argument list
 \arguments{
   \item{bootList}{
-     Describe \code{bootList} here
+     A list as returned by the  \code{BootList} function
 }
   \item{geneNames}{
      Describe \code{geneNames} here
 }
   \item{backgroundNoise}{
-     Describe \code{backgroundNoise} here
+     A list of background noise as  returned by  the \code{Background} function.
 }
   \item{referenceNormalizedReadCounts}{
      Describe \code{referenceNormalizedReadCounts} here
@@ -36,38 +37,29 @@ ReportTables(bootList,
      Describe \code{tableNames} here
 }
 }
-\details{
-TODO create some
-}
+
 \value{
-  TODO create some
-  Describe the value returned
-  If it is a LIST, use
-  \item{comp1 }{Description of 'comp1'}
-  \item{comp2 }{Description of 'comp2'}
- ...
+   Returns a list of tables, one for each sample of interest.
+   Each of these tables contains numerical information
+   of the aberration status of each gene.
 }
-\references{
-TODO create some
-}
+
 \author{
-TODO create some
+  Thomas Wolf, Cristiano Oliveira
 }
-\note{
-TODO create some
-}
+
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{
-  TODO create some
- objects to See Also as \code{\link{help}},
-}
 \examples{
-%% TODO create some
-2 + 2
+
+\dontrun{
+ ReportTables(bootList,
+             geneNames,
+             backgroundNoise,
+             referenceNormalizedReadCounts,
+             samplesNormalizedReadCounts,
+             tableNames)
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+
+}

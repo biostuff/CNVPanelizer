@@ -4,20 +4,20 @@
   ReadCountsFromBam
 }
 \description{
-  Returns a matrix with the read counts from a list of bam files.
+  Returns a matrix with the read counts from a set of bam files.
 }
 \usage{
 ReadCountsFromBam(bamFilenames, sampleNames, gr, ampliconNames, removeDup = FALSE)
 }
 \arguments{
   \item{bamFilenames}{
-    List of bamfiles filepaths
+    Vector of bamfile filepaths
 }
   \item{sampleNames}{
-    List of sample names to be used instead of bam filepaths
+    Vector of sample names to be used as colums names instead of bam filepaths
 }
   \item{gr}{
-    Genomic Range
+    Genomic Range object
 }
   \item{ampliconNames}{
     List of amplicon names
@@ -26,32 +26,20 @@ ReadCountsFromBam(bamFilenames, sampleNames, gr, ampliconNames, removeDup = FALS
   Boolean value in to remove duplicates
 }
 }
-\details{
-TODO create some
-}
+
 \value{
 A matrix with read counts where the rows represents the Amplicons and the columns represents the samples.
 }
-\references{
-TODO create some
-}
-\author{
-  Thomas Wolf, Cristiano Oliveira
-}
-\note{
-  TODO create some
-}
+
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{
- TODO create some
- objects to See Also as \code{\link{help}},
-}
+
 \examples{
-# ReadCountsFromBam(bamFilenames, sampleNames, gr, ampliconNames, removeDup = FALSE)
+\dontrun{
+
+  ReadCountsFromBam(bamFilenames, sampleNames, gr, ampliconNames, removeDup = FALSE)
+
+
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+}

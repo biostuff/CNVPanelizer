@@ -4,7 +4,7 @@
   Background
 }
 \description{
-  Returns the background noise associated with the panel
+  Estimates the dependence of background noise on the number of amplicons sequenced for each gene.
 }
 \usage{
 Background(geneNames,
@@ -18,46 +18,43 @@ Background(geneNames,
     Names of the genes
 }
   \item{samplesNormalizedReadCounts}{
-  A matrix with the normalized read counts
+  A matrix with the normalized read counts of the samples of interest
 }
   \item{referenceNormalizedReadCounts}{
-  A matrix with the reference read counts
+  A matrix with the normalized reference read counts
 }
   \item{sigList}{
-  List of significant genes
+  a list as returned by CheckSignificance
 }
   \item{replicates}{
-    List of replicates
+    an integer number of how many replicates should be performed
 }
 }
-\details{
-TODO create some
-}
+
 \value{
-TODO create some
+ Returns a list of data frames. One data frame for each sample of interest.
+ Thr data frames report the background noise for each number of gene associated amplicons
+ being sequenced.
 }
-\references{
-TODO create some
-}
+
 \author{
   Cristiano Oliveira, Thomas Wolf
 }
-\note{
-TODO create some
-}
+
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{
- %%objects to See Also as \code{\link{help}},
- TODO create some
-}
+
 \examples{
-%%TODO create some
-2 + 2
+
+\dontrun{
+
+Background(geneNames,
+           samplesNormalizedReadCounts,
+           referenceNormalizedReadCounts,
+           sigList,
+           replicates = 1000)
 
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+}
+
