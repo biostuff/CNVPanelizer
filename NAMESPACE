@@ -48,6 +48,7 @@ export(CombinedNormalizedCounts)
 export(WriteReadCountsToXLSX)
 export(WriteListToXLSX)
 export(ReadXLSXToList)
+export(GenerateSynthetic)
 
 
 # TODO: uncomment after creating the missing documentation

@@ -117,17 +117,67 @@ ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames = ele
 # }
 
 
+GenerateSynthetic <- function(numberOfSamples, numberOfGenes, status = NULL, cnvProb = 1/10, label = "Sample", lambdaNor = 1000, lambdaAmp = 1.5 * lambdaNor, lambdaDel = 1/1.5 * lambdaNor, rdist = rpois, varyCoverage =TRUE, seed = 123)
+{
+
+  set.seed(seed)
+
+
+  if(varyCoverage == TRUE) {
+
+    coverageVariability = sample(1:10,numberOfSamples,replace = TRUE)
+
+  } else{
+
+    coverageVariability = rep(1,numberOfSamples)
+
+  }
+
+  samples = foreach(i = 1:numberOfSamples,.combine=cbind) %:% foreach(j = 1:numberOfGenes,.combine =  c) %do%
+{
+
+  if(is.null(status)) {
+
+    lambda = sample(c(coverageVariability[i]  * lambdaDel,coverageVariability[i] * lambdaNor,coverageVariability[i] * lambdaAmp),1,prob = c(cnvProb,1,cnvProb))
+  }else{
+
+    lambda =  status[[i]][j] * lambdaNor *  coverageVariability[i]
+
+  }
+
+  rdist(j,lambda)
+
+}
+
+colnames(samples) = paste0(label,"_",1:numberOfSamples)
+#name of genes
+geneNames = paste0("Gene_",rep(1:numberOfGenes,1:numberOfGenes))
+rownames(samples) = geneNames
+
+return(samples)
+}
 
 
 
-
-
-
-
-
-
-
-
+#get the combined counts
+#CombinedNormalizedCounts <- function(sampleCounts, referenceCounts, gr, amplicons = elementMetadata(gr) ampliconNames) {
+# TODO change amplicons to ampliconNames to have same parameter with the same name as in the other functions..
+CombinedNormalizedCounts <- function(sampleCounts, referenceCounts,amplicons = NULL) {
+  #combine call samples and reference
+  allCounts = cbind(sampleCounts, referenceCounts)
+  classes = rep(c("samples", "reference"), c(ncol(sampleCounts), ncol(referenceCounts)))
+  #normalize all samples
+  bamDataRangesNorm = as.matrix((normalizeGenome(allCounts, normType = "median")))
+  if(!is.null(amplicons)) {
+    #add the amplicon names as rownames
+    rownames(bamDataRangesNorm) = amplicons
+  }
+  #get the count information for one sample
+  #add small value to prevent a zero read count
+  normalizedSamples = bamDataRangesNorm[, which(classes == "samples")] + 0.00001
+  normalizedReference = bamDataRangesNorm[, which(classes == "reference")] +  0.00001
+  return(list(samples = normalizedSamples, reference = normalizedReference))
+}
 
 
 
@@ -136,22 +186,22 @@ ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames = ele
 #get the combined counts
 #CombinedNormalizedCounts <- function(sampleCounts, referenceCounts, gr, amplicons = elementMetadata(gr) ampliconNames) {
 # TODO change amplicons to ampliconNames to have same parameter with the same name as in the other functions..
-CombinedNormalizedCounts <- function(sampleCounts, referenceCounts, gr, amplicons = elementMetadata(gr)["ampliconNames"]) {
+#CombinedNormalizedCounts <- function(sampleCounts, referenceCounts, gr, amplicons = elementMetadata(gr)["ampliconNames"]) {
     #combine call samples and reference
-    allCounts = cbind(sampleCounts, referenceCounts)
-    classes = rep(c("samples", "reference"), c(ncol(sampleCounts), ncol(referenceCounts)))
+#    allCounts = cbind(sampleCounts, referenceCounts)
+#    classes = rep(c("samples", "reference"), c(ncol(sampleCounts), ncol(referenceCounts)))
     #normalize all samples
-    bamDataRangesNorm = as.matrix((normalizeGenome(allCounts, normType = "median")))
-    if(!is.null(amplicons)) {
-        #add the amplicon names as rownames
-        rownames(bamDataRangesNorm) = amplicons
-    }
+#    bamDataRangesNorm = as.matrix((normalizeGenome(allCounts, normType = "median")))
+#    if(!is.null(amplicons)) {
+#        #add the amplicon names as rownames
+#        rownames(bamDataRangesNorm) = amplicons
+#    }
     #get the count information for one sample
     #add one tp revent a zero read count
-    normalizedSamples = bamDataRangesNorm[, which(classes == "samples")] + 0.00001
-    normalizedReference = bamDataRangesNorm[, which(classes == "reference")] +  0.00001
-    return(list(samples = normalizedSamples, reference = normalizedReference))
-}
+#    normalizedSamples = bamDataRangesNorm[, which(classes == "samples")] + 0.00001
+#    normalizedReference = bamDataRangesNorm[, which(classes == "reference")] +  0.00001
+#    return(list(samples = normalizedSamples, reference = normalizedReference))
+#}
 
 # #save the normalized and unnormalized tables as an excel file
 # saveReadCountTable <- function(countTable,file) {
@@ -709,6 +759,8 @@ PlotBootstrapDistributions <- function(bootList, reportTables, outputFolder) {
         ggsave(filename=filepath, plot=test, height=7.42 * 1, width=8.11 * 2, limitsize=FALSE)
     }
 }
+
+
 
 
 

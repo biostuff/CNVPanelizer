@@ -90,7 +90,7 @@ numberOfGenes = 10
 #number of reference samples
 numberOfReferenceSamples = 100
 
-referenceSamples =GenerateSynthetic(numberOfReferenceSamples, numberOfGenes, cnvProb = 1/100, label = "Reference")
+referenceSamples = GenerateSynthetic(numberOfReferenceSamples, numberOfGenes, cnvProb = 1/100, label = "Reference")
 
 
 #generating a sample set
