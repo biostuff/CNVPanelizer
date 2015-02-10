@@ -117,41 +117,41 @@ ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames = ele
 # }
 
 
-GenerateSynthetic <- function(numberOfSamples, numberOfGenes, status = NULL, cnvProb = 1/10, label = "Sample", lambdaNor = 1000, lambdaAmp = 1.5 * lambdaNor, lambdaDel = 1/1.5 * lambdaNor, rdist = rpois, varyCoverage =TRUE, seed = 123)
+GenerateSynthetic <- function(numberOfSamples,numberOfGenes,amplCount,status = NULL,cnvProb = 1/10,label = "Sample",lambdaNor = 1000,lambdaAmp = 1.5 * lambdaNor,lambdaDel = 1/1.5 * lambdaNor,rdist = rpois,varyCoverage =TRUE,seed = 123)
 {
-
   set.seed(seed)
-
-
   if(varyCoverage == TRUE) {
-
     coverageVariability = sample(1:10,numberOfSamples,replace = TRUE)
-
   } else{
-
     coverageVariability = rep(1,numberOfSamples)
-
   }
 
-  samples = foreach(i = 1:numberOfSamples,.combine=cbind) %:% foreach(j = 1:numberOfGenes,.combine =  c) %do%
-{
+  #how many amplicons for each sample
+  #minAmpl = 1
+  #maxAmpl = 10
+  #seqAmpl = minAmpl:maxAmpl
+  #amplCount = sample(seqAmpl,numberOfGenes,replace = TRUE,prob = 1/seqAmpl)
 
+  samples = foreach(i = 1:numberOfSamples,.combine=cbind) %:% 
+    foreach(j = 1:numberOfGenes,.combine =  c) %do%
+{
   if(is.null(status)) {
 
     lambda = sample(c(coverageVariability[i]  * lambdaDel,coverageVariability[i] * lambdaNor,coverageVariability[i] * lambdaAmp),1,prob = c(cnvProb,1,cnvProb))
+
   }else{
 
     lambda =  status[[i]][j] * lambdaNor *  coverageVariability[i]
 
   }
 
-  rdist(j,lambda)
+  rdist(amplCount[j],lambda)
 
 }
 
 colnames(samples) = paste0(label,"_",1:numberOfSamples)
 #name of genes
-geneNames = paste0("Gene_",rep(1:numberOfGenes,1:numberOfGenes))
+geneNames = paste0("Gene_",rep(1:numberOfGenes,amplCount)) 
 rownames(samples) = geneNames
 
 return(samples)
@@ -162,7 +162,7 @@ return(samples)
 #get the combined counts
 #CombinedNormalizedCounts <- function(sampleCounts, referenceCounts, gr, amplicons = elementMetadata(gr) ampliconNames) {
 # TODO change amplicons to ampliconNames to have same parameter with the same name as in the other functions..
-CombinedNormalizedCounts <- function(sampleCounts, referenceCounts,amplicons = NULL) {
+CombinedNormalizedCounts <- function(sampleCounts, referenceCounts, amplicons = NULL) {
   #combine call samples and reference
   allCounts = cbind(sampleCounts, referenceCounts)
   classes = rep(c("samples", "reference"), c(ncol(sampleCounts), ncol(referenceCounts)))
@@ -486,30 +486,35 @@ AmplProbMultipeSamples <- function(genePosNonSig) {
     return(amplWeights)
 }
 
-Background <- function(geneNames, samplesNormalizedReadCounts, referenceNormalizedReadCounts, sigList, replicates = 1000) {
-    #gene index 
-    genesPositionsIndex = IndexGenesPositions(geneNames)
-    #calculate the reference median
-    refMedian = apply(referenceNormalizedReadCounts, 1, median)
-    #calculate the ratio matrix for each sample
-    ratioMatrix = RatioMat(samplesNormalizedReadCounts, refMedian)
-    #remove the significant genes from the noise estimation
-    genesPosNonSig <- NonSignificantGeneIndex(sigList,genesPositionsIndex)
-    #calculate the weight for each amplicon of significant genes
-    amplWeights <- AmplProbMultipeSamples(genesPosNonSig)
-    uniqueAmpliconNumbers = NumberOfUniqueAmplicons(genesPositionsIndex)
-    
-    # TODO because package generaton complains..  
-    i <- NULL
-    backgroundObject = foreach(i = seq_along(genesPosNonSig)) %do% {
-        IterateAmplNum(uniqueAmpliconNumbers, ratioMatrix[unlist(genesPosNonSig[[i]]), i], replicates = replicates, probs = amplWeights[[i]])
-    }
-    return(backgroundObject)
+Background <- function(geneNames, samplesNormalizedReadCounts, referenceNormalizedReadCounts, bootList, replicates = 1000) {
+  
+  #which genes showed significant changes
+  sigList <- CheckSignificance(bootList)
+  # gene index
+  genesPositionsIndex <- IndexGenesPositions(geneNames)
+  # calculate the reference median
+  #refMedian <- apply(referenceNormalizedReadCounts, 1, median)
+  refMedian <- rowMedians(referenceNormalizedReadCounts)
+  # calculate the ratio matrix for each sample
+  ratioMatrix <- RatioMat(samplesNormalizedReadCounts, refMedian)
+  # remove the significant genes from the noise estimation
+  genesPosNonSig <- NonSignificantGeneIndex(sigList, genesPositionsIndex)
+  # calculate the weight for each amplicon of significant genes
+  amplWeights <- AmplProbMultipeSamples(genesPosNonSig)
+  uniqueAmpliconNumbers <- NumberOfUniqueAmplicons(genesPositionsIndex)
+  
+  i <- NULL
+  backgroundObject <- foreach(i = seq_along(genesPosNonSig)) %dopar% {
+    IterateAmplNum(uniqueAmpliconNumbers, ratioMatrix[unlist(genesPosNonSig[[i]]), i], replicates = replicates, 
+                   probs = amplWeights[[i]])
+  }
+  return(backgroundObject)
 }
+  
 
 ReportTables <- function(bootList, geneNames, backgroundNoise, referenceNormalizedReadCounts,samplesNormalizedReadCounts , tableNames = seq_along(backgroundReport)) {
-    
-   #get the background noise in a format that can be used for a report table
+  
+  #get the background noise in a format that can be used for a report table
    backgroundReport <- BackgroundReport(backgroundNoise,geneNames)
   
   
