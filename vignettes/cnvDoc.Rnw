@@ -7,30 +7,36 @@
 
 \documentclass{article}
 
-%\usepackage[style=numeric,backend=bibtex]{biblatex}  % For squares..
-\usepackage[backend=bibtex]{biblatex} % For squares..
+%\usepackage[style=numeric,backend=bibtex]{biblatex}  % For squares with numbers (it was not showing the list of references at the end..)
+\usepackage[backend=bibtex]{biblatex} % For squares with text
 %\usepackage[style=authoryear,natbib=true,backend=bibtex]{biblatex}   %  For name and year
 \usepackage[T1]{fontenc}
 \usepackage[sc]{mathpazo}
 \usepackage{graphics}
+\usepackage{float}     % Required to present the reference list
+\usepackage{lscape}   % Because landscape pages..
+\usepackage{rotating}
+\usepackage{adjustbox}
+%\usepackage{notoccite} % to have references ordered as in the text (does not seem to be working...)
+% \bibliographystyle{ieeetr} % to have references ordered as in the text  (does not seem to be working...)
 
-\usepackage{float}
+\usepackage{pdflscape}    % to present pages in landscape in horizontal view
+%\usepackage{capt-of}
+
+%\usepackage{floatrow} % atempt to display plot without resizing
 
 \renewcommand{\sfdefault}{lmss}
 \renewcommand{\ttdefault}{lmtt}
 
 \setcounter{secnumdepth}{5} % Enable level 4-5
-\setcounter{tocdepth}{3}
+\setcounter{tocdepth}{4}
 
-% this needs to be after the usepackage ?!?!
+% this needs to be after the usepackage otherwise the references do no show at the end ?!?!
 \addbibresource{bmc_article2.bib} % Specifying the packages.bib file 
-
 
 \title{CNVPanelizer: Reliable CNV detection in targeted sequencing applications}
 
 \author{Cristiano Oliveira {\tt <cristiano.oliveira@med.uni-heidelberg.de>}}
-
-%\author{Thomas Wolf {\tt <thomas.wolf@uni-heidelberg.de>}}
 
 \author{
   Oliveira, Cristiano\\
@@ -53,100 +59,48 @@
 
 \begin{document}
 
+\maketitle
 
-\maketitle 
+%\renewcommand\contentsname{Table of contents} %Just to change title of table of contents
+%\tableofcontents
 
-
-\tableofcontents
-
-\iffalse
-\begin{abstract}
-
-This paper describes the use of an R bioconductor package to use targeted sequencing data to reliably detect CNVs from clinical samples. To assess how reliable a change in reads counts in a specific region correlates with the presence of CNVs, we implemented an algorithm which uses a subsampling strategy similar to Random Forest to predict the presence of reliable CNVs. We also introduce a novel method to correct for the background noise introduced by sequencing genes with a low number of amplicons. We describe the implementation of these models in the package \textbf{CNVPanelizer} and illustrate its usage to reliably detect CNVs on several simulation and real data examples including several code snippets when dealing with clinical data. For a more complete overview of the package's functionality and extensibility see \cite{Oliveira2015}, TODO the manual pages and the reference card.
-
-
-\end{abstract}
-
-\fi
-
+Amplicon targeted sequencing, over the last few years, has become a mainstay in the clinical use of next generation sequencing technologies. For the detection of somatic and germline SNPs this has been proven to be a highly robust methodology. One area of genomic analysis which is usually not covered by targeted sequencing, is the detection of copy number variations (CNVs). While a large number of available algorithms and software address the problem of CNV detection in whole genome or whole exome sequencing, there are no such established tools for amplicon based targeted sequencing. We introduced a novel algorithm for the reliable detection of CNV from targeted sequencing.
 
 \section{Introduction}
-Targeted sequencing, over the last few years, has become a mainstay in the clinical use of next generation sequencing technologies \cite{Glockle2014}. For the detection of somatic and germline SNPs this has been proven to be a highly robust methodology \cite{Huang2013}. One area of genomic analysis which is usually not covered by targeted sequencing, is the detection of copy number variations (CNVs). While a large number of available algorithms and software address the problem of CNV detection in whole genome or whole exome sequencing, there are no such established tools for targeted sequencing.
-
-section{Methods}
-To assess how reliable a change in reads counts in a specific region correlates with the presence of CNVs, we implemented an algorithm which uses a subsampling strategy similar to Random Forest to predict the presence of reliable CNVs. We also introduce a novel method to correct for the background noise introduced by sequencing genes with a low number of amplicons.
-
-\section{Implementation}
-We could reproduce the CNVs detected by Exome sequencing and detected CNVs were also found on the Exome level. The CNVs detected by our approach but not by the Exome data were validated by a Taqman assay.
+To assess if a region specific change in read counts correlates with the presence of CNVs, we implemented an algorithm that uses a subsampling strategy similar to Random Forest to predict the presence of reliable CNVs. We also introduce a novel method to correct for the background noise introduced by sequencing genes with a low number of amplicons. To make it available to the community we implemented the algorithm as an R package.
 
 \section{Using}
-This section provides an overview of the package functions, with selected illustrative simulation experiments which describes the typical usage of the package available functions.
+This section provides an overview of the package functions.
 
 \subsection{Installing and Loading the package}
 
-The package is available through the Bioconductor repository and could be installed using the following R command:
+The package is available through the Bioconductor repository and can be installed and loaded using the following R commands:
 
-<<echo = TRUE,message=FALSE>>=
-## TODO Not this, but some bioconductor thing...
+<<InstallingPackage, echo=TRUE, eval=FALSE, message=FALSE>>=
+# To install from Bioconductor
+source("http://bioconductor.org/biocLite.R")
+biocLite("CNVPanelizer")
+@
+
+<<LoadingPackage, echo=TRUE, message=FALSE>>=
+# To load the package
 library(CNVPanelizer)
-
-##source("http://bioconductor.org/biocLite.R")
-##biocLite("CNVPanelizer")
-
 @
 
+\newpage
 
+\subsection{Reading data}
 
-
-
-\subsection{Importing data}
-
-We provide some helper functions to make the import of data more straightforward. (For testing purposes we also provide a sample data set)
-
-\subsubsection{Using test data}
-
-We made use of two synthetically generated data sets.
-One was generated using binomial distributions while
-the other one follows a Poisson distribution.
-
-<<echo = TRUE>>=
-# TODO Change data
-#data(ALL, package = "CNVPanelizer")
-
-@
-
-\subsubsection{Using real data}
-
-<<echo = TRUE>>=
-
-# Directory with the test data
-sampleDirectory <- "D:/data/NGS/test"
-
-# Directory with the reference data
-referenceDirectory <- "D:/data/NGS/reference"
-
-# vector with test filenames
-sampleFilenames <- list.files(path = sampleDirectory,
-                              pattern = ".bam$",
-                              full.names = TRUE)
-
-# vector with reference filenames
-referenceFilenames <- list.files(path = referenceDirectory,
-                                 pattern = ".bam$",
-                                 full.names = TRUE)
-
-@
-
-% This replaces subsubsubsection..
-\paragraph{Loading BED data}
+\subsubsection{BED file}
 % \subparagraph{} % level 5
-
 %\subsubsubsection{Loading BED data}
 
-<<echo = TRUE>>=
+The BED file is required to obtain amplicon and gene names information associated with the panel.
+
+<<LoadingBED, echo=TRUE, eval=FALSE>>=
 
 # Bed file defining the amplicons
-bedFilepath <- "D:/data/NGS/LCPv1(CNV).bed"
+bedFilepath <- "/somePath/someFile.bed"
 
 # The Column number at the BED file where the amplicon column names are
 ampliconColumnNumber <- 4
@@ -159,64 +113,86 @@ genomicRangesFromBed <- BedToGenomicRanges(bedFilepath,
 metadataFromGenomicRanges <- elementMetadata(genomicRangesFromBed)
 geneNames = metadataFromGenomicRanges["geneNames"][, 1]
 ampliconNames = metadataFromGenomicRanges["ampliconNames"][, 1]
-
-
 @
 
-\paragraph{Counting Reads}
-%\subsubsubsection{Counting Reads}
 
-The reads were counted using the ExomeCopy [] package from the Bioconductor project \cite{Gentleman2004}. All reads overlapping with the region of an amplicon were counted for this amplicon. Only reads with a Mapping quality $\geq 20$ were counted. The read count information obtained from a BAM file can be represented as a read count matrix $C_{mn}$ with each column for a sample from the sample set $S = s_1,\ldots,s_n$ and each row for an amplicon from the set of amplicons $A = a_1,\ldots,a_m$. Each amplicon $a_{m,g}$ is associated with a specific gene $A_G; G = g_1,\ldots,g_k$. A read count matrix was generated for both the references $C_R$ and the samples on which the CNV calling is to be performed $C_S$. 
-The function implemented in the ExomeCopy package allows to remove PCR Duplicates. For reads with the same start site, end site and chromosomal
-orientation only one is kept. As shown in [] PCR duplicates do not have a large influence on the ratio between reference and sample.
-Still this might serve as an additional quality control step in a CNV detection pipeline.  
+\subsubsection{Selecting files}
+
+Two sets of data are required. The sample of interest and the set of reference bam files to compare against.
+
+<<LoadingPathsAndFilenames, echo = TRUE, eval=FALSE>>=
+
+# Directory with the test data
+sampleDirectory <- "/somePathToTestData"
+
+# Directory with the reference data
+referenceDirectory <- "/somePathToReferenceData"
+
+# vector with test filenames
+sampleFilenames <- list.files(path = sampleDirectory,
+                              pattern = ".bam$",
+                              full.names = TRUE)
+
+# vector with reference filenames
+referenceFilenames <- list.files(path = referenceDirectory,
+                                 pattern = ".bam$",
+                                 full.names = TRUE)
+@
 
 
-<<echo = TRUE>>=
+%\paragraph{Counting Reads}
+\subsubsection{Counting reads}
+
+The reads were counted using the \textbf{ExomeCopy} package from the Bioconductor project. All reads overlapping with the region of an amplicon were counted for this amplicon. Only reads with a mapping quality $\geq 20$ were counted. The function implemented in the ExomeCopy package allows to remove PCR Duplicates. For reads with the same start site, end site and chromosomal orientation only one is kept. PCR duplicates do not have a large influence on the ratio between reference and sample, still this might serve as an additional quality control step in a CNV detection pipeline.
+
+\newpage
+
+<<LoadingReadCountsData, echo = TRUE, eval=FALSE>>=
 
 # Should duplicated reads (same start, end site and strand) be removed
-removePcrDuplicates <- TRUE
+removePcrDuplicates <- FALSE   # It is set to FALSE for amplicon based sequencing
 
 # Read the Reference data set
 referenceReadCounts <- ReadCountsFromBam(referenceFilenames,
-                                         sampleNames = referenceFilenames,
                                          genomicRangesFromBed,
+                                         sampleNames = referenceFilenames,
                                          ampliconNames = ampliconNames,
                                          removeDup = removePcrDuplicates)
 
-# Read the sample data set
+# Read the sample of interest data set
 sampleReadCounts <- ReadCountsFromBam(sampleFilenames,
-                                      sampleNames = sampleFilenames,
                                       genomicRangesFromBed,
+                                      sampleNames = sampleFilenames,
                                       ampliconNames = ampliconNames,
                                       removeDup = removePcrDuplicates)
+@
+
+\subsubsection{Using Synthetic Data}
+
+You can also use synthetic data to test the functions.
+The following examples make use of two synthetically generated data sets.
+One for the reference and one as a testing set.
+
+<<LoadingSyntheticData, echo = TRUE>>=
+data(testSamples)
+data(referenceSamples)
+sampleReadCounts <- testSamples
+referenceReadCounts <- referenceSamples
+## Gene names should be same size as row columns 
+geneNames <- row.names(referenceSamples)
+# Not defined for synthetic data
+ampliconNames <- NULL
 
 @
 
-
-
 \subsection{Normalization}
 
-To account for sample and sequencing run specific variations the counts obtained for each sample were normalized. After calculating the median read count over all amplicons for each sample, all samples were normalized to the same median read count using the cnMops Bioconductor package. Both reference ($C_R$) and samples ($C_S$) were  normalized together, to allow for an unbiased comparison. This resulted in the normalized matrices $\bar{C}_S$  and $\bar{C_S}$. The normalized read counts are referred to as median normalized read count (MNR) values. In the following text all notations will refer to the normalized values.
-
-<<echo = TRUE>>=
+To account for sample and sequencing run specific variations the counts obtained for each sample were normalized using the \textbf{cn.mops} package.
+<<NormalizedReadCounts, echo = TRUE>>=
 
 normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
                                                  referenceReadCounts,
                                                  amplicons = ampliconNames)
-@
-
-
-\subsection{CNV detection}
-
-As a matching normal reference is not always available in clinical sequencing \cite{Gerstung2014}, a synthetic reference is generated by averaging (median) the amplicon read counts over all available reference samples. The synthetic reference can be represented as vector of averaged reference read counts $\hat{c}_R = \hat{c}_{R,1,1},\ldots,\hat{c}_{R,m,g}$. 
-If  the reference was obtained from tumor samples instead of normal tissue, a weighting scheme can be used. Each sample is weighted by the inverse interquartile range of the read counts over all amplicons. Thus samples showing an increased level of chromosomal instability receive a lower weight. This can be used to calculate a weighted median or to assign a lower weight to such samples in following subsampling procedures. The read counts for the samples of interest can also be represented as vectors  $c_S = c_1,\ldots,c_n  = c_{S,1,1},\ldots,c_{S,m,g}$. The ratio between synthetic reference and a sample can be calculated as $r_{SR} = \frac{c_S}{c_R}$. After calculating the median read counts for each  amplicon, these are averaged (median) for each of the analysed genes $r_{SRG} = median(r_{SRa};a \in A_G)$  Thus obtaining a read count score for each gene. The set of genes with significant changes. While this gives an estimate of the ratios it does not take into consideration the distribution over the reference samples and the variance between the amplicons.
-
-\subsection{Bootstrap based analysis}
-
-Aproach similar to the Random forest or Random k-nearest neighbour methodologies, which bootstrap the samples and subsample the features. In our case features would be equivalent to amplicons. The subsampling procedure is repeated n times to generate a large set of randomized synthetic references $B = b_1,\ldots,b_n$ by selecting with replacement (boostrapping) from the set of reference samples. The ratio between the sample of interest and each randomized reference is calculated for each gene, using only a subset of the amplicons associated with each gene.
-
-<<echo = TRUE>>=
 
 # After normalization data sets need to be splitted again to perform bootstrap
 samplesNormalizedReadCounts = normalizedReadCounts["samples"][[1]]
@@ -224,32 +200,32 @@ referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
 
 @
 
-<<echo = TRUE,message=FALSE,warning=FALSE>>=
+\subsection{Bootstrap Based CNV}
+
+This aproach is similar to the Random forest or Random k-nearest neighbour methodologies, which bootstrap the samples and subsample the features. In our case features would be equivalent to amplicons. The subsampling procedure is repeated n times to generate a large set of randomized synthetic references $B = b_1,\ldots,b_n$ by selecting with replacement (boostrapping) from the set of reference samples. The ratio between the sample of interest and each randomized reference is calculated for each gene, using only a subset of the amplicons associated with each gene.
+
+<<BootList, echo = TRUE,message=FALSE,warning=FALSE>>=
 
 # Number of bootstrap replicates to be used
 replicates <- 10
 
-# perform the bootstrap based analysis
+# Perform the bootstrap based analysis
 bootList <- BootList(geneNames,
                      samplesNormalizedReadCounts,
                      referenceNormalizedReadCounts,
-                     reps = replicates,
+                     replicates = replicates,
                      refWeights = NULL)
-
 @
 
 
-
-\subsection{Background estimation}
+\subsection{Background Estimation}
 
 Not all genes have the same number of amplicons $|A_G|$ and it has been shown that sequencing genes with a higher number of amplicons  yields better sensitivity and specifity when detecting putative copy number variations. Still genes sequenced with a low number of amplicons might still show significant changes in observed read counts. While normalization makes the comparison of read counts comparable between samples, genes with a small number of amplicons might still show a bias. To quantify the effect of a low number of amplicons on the calling of CNVs we introduced a background noise estimation procedure. Using the ratio between the median reference and the sample used for calling we subsample for each unique number of amplicons. In the case of two amplicons we repeatedly sample two random amplicons from the set of all amplicons, and average the ratios. Amplicons that belong to genes showing significant copy number variations $G_{sig}$ are not included in the subsampling pool.
-Each amplicon is weighted according to the number of amplicons the respective gene has $w_A = \frac{1}{|A_g|}$. Thus the probablity of sampling from a gene is the same regardless of the number amplicons. For each number of amplicons a background noise distribution is estimated. The background reported is defined by $5\%$ and the $95\%$ of the respective distribution. For each unique number of amplicons per gene we run a sampling based approach to estimate the background noise after normalization. While normalization works well for genes with a large number of amplicons, background noise still remains for gene with only a few measured amplicons. The correlation between background error and number of amplicons is shown in figure X.
+Each amplicon is weighted according to the number of amplicons the respective gene has $w_A = \frac{1}{|A_g|}$. Thus the probablity of sampling from a gene is the same regardless of the number amplicons. For each number of amplicons a background noise distribution is estimated. The background reported is defined by $5\%$ and the $95\%$ of the respective distribution. For each unique number of amplicons per gene we run a sampling based approach to estimate the background noise after normalization.
 
+<<BackgroundNoise, echo = TRUE>>=
 
-
-<<echo = TRUE>>=
-
-# estimate the background noise left after normalization
+# Estimate the background noise left after normalization
 backgroundNoise <- Background(geneNames,
                               samplesNormalizedReadCounts,
                               referenceNormalizedReadCounts,
@@ -257,34 +233,85 @@ backgroundNoise <- Background(geneNames,
                               replicates = replicates)
 @
 
+\subsection{Results}
 
+To analyse the results we provide two outputs. A plot which shows the detected variations, and a report table with more detailed information about those variations.
 
+\subsubsection{Report}
 
-\subsection{Report tables}
+The report includes a barplot with the bootstrap distribution for each gene. An example can be found in figure~\ref{fig:reportTable}. The final report is genewise, and is based on the bootstrapping. It reports how often the ratio was above/below a certain value: i.e 70
 
-The report includes a barplot with the bootstrap dis-
-tribution for each gene. An example can be found in
-figure X The final report is genewise, and is based on
-the bootstrapping It reports how often the ratio was
-above/below a certain value: i.e 70
-
-<<echo = TRUE>>=
-
+<<ReportTables, echo=TRUE, message=FALSE, warning=FALSE>>=
 # Build report tables
-reportTables <- ReportTables(bootList, 
-                             geneNames, 
-                             backgroundNoise, 
-                             referenceNormalizedReadCounts, 
+reportTables <- ReportTables(bootList,
+                             geneNames,
+                             backgroundNoise,
+                             referenceNormalizedReadCounts,
                              samplesNormalizedReadCounts)
-
 @
 
+At the figure~\ref{fig:reportTable} we can see an example of the report table for a single sample.
+
+\newpage
+
+\begin{landscape}
+
+\begin{figure}[H]
+<<ReportTablesToShow, echo=FALSE, message=FALSE, warning=FALSE>>=
+options(width=500)  # to show the entire table..
+# to avoid have to print to other page..
+numberOfGenesViewport = 15
+
+#if (nrow(reportTables[[1]]) > numberOfGenes) {
+#  numberOfGenes = numberOfGenesViewport
+#} else {
+#  numberOfGenes = nrow(reportTables[[1]])
+#}
+#reportTables[[1]][1:numberOfGenes, ]
+
+# index of the sample to show
+sampleIndexToShow = 4
+
+reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, ]
+@
+
+    \caption{Sample report table.}
+    \label{fig:reportTable}
+\end{figure}
 
 
+  \begin{table}[hb]
+    \centering
+    \begin{tabular}{| l | p{15cm} |} \hline
+    Median Ratio & The median ratio \\ \hline
+    Up & Up Regulated \\ \hline
+    Down & Down Regulated \\ \hline
+    5\% Quantile & The 5\% quantile of the bootstrap distribution\\ \hline
+    50\% Quantile & The 50\% quantile of the bootstrap distribution\\ \hline
+    95\% Quantile & The 95\% quantile of the bootstrap distribution\\ \hline
+    5\% Noise & The 5\% noise \\ \hline
+    95\% Noise & The 95\% noise \\ \hline
+    Sign. & Boolean value representing if the read counts differences are Significative \\ \hline
+    Above Noise & Boolean value representing if the median ratio is above Noise \\ \hline
+    Ampl. Number & Number of Amplicons associated with the gene \\ \hline
+    Passed & if there is a detected aberration which the value is above noise the Value will be 1, otherwise 0 \\ \hline
+    \end{tabular}
+  \label{table:reportTableColumnDescription}
+  \caption{Report table Column Description}
+    \end{table}
 
-\subsection*{Results}
+\end{landscape}
+
+
+\newpage
+
+\subsubsection{Plots}
+
+The generated plots (one per test sample) show the bootstrap distribution for each gene. The function \textbf{PlotBootstrapDistributions} generates a list of plots for all test samples (A plot per sample).
+At the figure~\ref{fig:BootstrapPlot} we can see an example of the plot for a single sample.
+
  
-<<echo = TRUE>>=
+<<HelperFunctions, echo = FALSE, message=FALSE, warning=FALSE, eval=FALSE>>=
 
 # Directory where the generated files with the analysis results will be saved.
 outputDirectory <- "D:/data/NGS/CNVPanelizerResults"
@@ -305,98 +332,101 @@ WriteListToXLSX(list(samplesReadCount = samplesNormalizedReadCounts,
                 normalizedReadCountsFilepath)
 @
 
-<<echo = TRUE,message=FALSE>>=
 
-# Export the plots (generates one plot per sample)
-PlotBootstrapDistributions(bootList, reportTables, outputDirectory)
 
+
+
+<<JustToShowBootstrapPlot, echo = TRUE, eval=FALSE, message=FALSE, warning=FALSE>>=
+
+#outputDirectory <- "D:/data/NGS/CNVPanelizerResults"
+sampleIndexToShow <- 4
+#PlotBootstrapDistributions(bootList, reportTables, outputDirectory)[[sampleIndexToShow]]
+PlotBootstrapDistributions(bootList, reportTables)[[sampleIndexToShow]]
 @
 
-\begin{figure}[H]
-\centering
-%        \includegraphics[totalheight=5cm]{./imgs/CNVpanelizerGUI.png}
-%        \includegraphics[keepaspectratio=true,scale=0.6]{slike/visina8}}
-%        \includegraphics[keepaspectratio=true,scale=0.6]{./imgs/CNVpanelizerGUI.png}
-    \includegraphics[keepaspectratio=true,width=\textwidth]{./imgs/CNVpanelizerGUI.png}
-    \caption{Sample plot per sample.}
-    \label{fig:verticalcell}
-\end{figure}
+% \begin{figure}[H]
+% <<echo = FALSE, message=FALSE, warning=FALSE>>=
+% PlotBootstrapDistributions(bootList, reportTables, outputDirectory)[[sampleIndexToShow]]
+% @
+%     \caption{Sample plot of a sample.}
+%     \label{fig:bootstrapPlot}
+% \end{figure}
 
 
-To make it easier to develop real use scripts we added some helper methods to the package:
+\begin{landscape}
 
-\section{Reading data from files}
-
-
-<<echo = TRUE>>=
-# Read the Reference data set
-referenceFilenames <- list.files(path = referenceDirectory,
-                                 pattern = ".bam$",
-                                 full.names = TRUE)
-referenceReadCounts <- ReadCountsFromBam(referenceFilenames,
-                                         sampleNames = referenceFilenames,
-                                         genomicRangesFromBed,
-                                         ampliconNames = ampliconNames,
-                                         removeDup = removePcrDuplicates)
+<<BootstrapPlot, echo=FALSE, fig.align='center', fig.cap='Plot for a single Test sample', out.width='0.7\\linewidth', fig.height=4, fig.width='\\linewidth'>>=
+#PlotBootstrapDistributions(bootList, reportTables, outputDirectory)[[sampleIndexToShow]]
+PlotBootstrapDistributions(bootList, reportTables)[[sampleIndexToShow]]
 @
 
 
-\section{Saving data to files}
 
-The format of the data is chosen Depending on the file extension (xls for Excel and xlsx for Excel2007). We advice using the xlsx format (based on Office Open XML format) to keep compatibility with other tools
-<<echo = TRUE>>=
-# Export the report tables to excel format
-reportTablesFilepath <- file.path(outputDirectory, "report_tables.xlsx")
-WriteListToXLSX(reportTables, reportTablesFilepath)
-
-@
-
-And for plotting data, generating one plot per test sample
-
-<<echo = TRUE,message=FALSE>>=
-
-# Export the plots (generates one plot per sample)
-PlotBootstrapDistributions(bootList, reportTables, outputDirectory)
-
-@
-
-
-\section{Summary}
-
-We introduced a novel algorithm for the reliable detection of CNV from targeted sequencing.
-On Synthetic Dataset the algorithm performed with a high AUC up to a level of noise. On Real Data The concordance between targeted sequencing and
-whole exome data was high. Removal of PCR duplicates resulted in a signicantly lower rate of false positive detections. 
+  \begin{table}[hb]
+  \centering
+    \begin{tabular}{| l | p{15cm} |} \hline
+    No Change & There is no change in the read count \\ \hline
+    Non Reliable Change & There is some change but is below the noise level \\ \hline
+    Reliable Change & The change is above the noise level \\ \hline
+    \end{tabular}
+  \label{table:plotLabelDescription}
+  \caption{Description of the CNV detection levels}
+\end{table}
 
 
 
-\printbibliography
 
-\listoffigures
+% 
+% \begin{center}
+%     \begin{tabular}{| l | l | l |  p{15cm} |}
+%     \hline
+%     Day & Min Temp & Max Temp & Summary \\ \hline
+%     Monday & 11C & 22C & A clear day with lots of sunshine.
+%     However, the strong breeze will bring down the temperatures. \\ \hline
+%     Tuesday & 9C & 19C & Cloudy with rain, across many northern regions. Clear spells
+%     across most of Scotland and Northern Ireland,
+%     but rain reaching the far northwest. \\ \hline
+%     Wednesday & 10C & 21C & Rain will still linger for the morning.
+%     Conditions will improve by early afternoon and continue
+%     throughout the evening. \\
+%     \hline
+%     \end{tabular}
+% \end{center}
+% 
+% With width specified:
+% \begin{center}
+%     \begin{tabular}{ | l | l | l | p{5cm} |}
+%     \hline
+%     Day & Min Temp & Max Temp & Summary \\ \hline
+%     Monday & 11C & 22C & A clear day with lots of sunshine.  
+%     However, the strong breeze will bring down the temperatures. \\ \hline
+%     Tuesday & 9C & 19C & Cloudy with rain, across many northern regions. Clear spells
+%     across most of Scotland and Northern Ireland,
+%     but rain reaching the far northwest. \\ \hline
+%     Wednesday & 10C & 21C & Rain will still linger for the morning.
+%     Conditions will improve by early afternoon and continue
+%     throughout the evening. \\
+%     \hline
+%     \end{tabular}
+% \end{center}
+
+
+\end{landscape}
+
+
+
+
+%\begin{figure}[H]
+%\centering
+%    \includegraphics[keepaspectratio=true,width=\textwidth]{./imgs/CNVpanelizerGUI.png}
+%    \caption{Sample plot per sample.}
+%    \label{fig:verticalcell}
+%\end{figure}
+
+%\listoffigures
 
 %\listoftables
 
+%\printbibliography
 
 \end{document}
-
-
-\begin{filecontents}{bmc_article2.bib}
-<<definingPackageCitations, cache = FALSE, results='asis', echo = FALSE, warning=FALSE, message=FALSE>>=
-package.vector <- c( "ggplot2", "xtable" ) # a vector of the packages used
-loaded <- lapply(package.vector, require, quietly = TRUE, 
-    character.only = TRUE) # loading in the packages 
-
-getBibTex <- function(pkg.name) {
- bib.cite <- toBibtex(citation(pkg.name))
- key <- paste0("rPkg_", pkg.name)
- temp.top <- substr(bib.cite[1], start = 1, 
-     stop = (nchar(bib.cite[1]) - 1))
- bib.cite[1]  <- paste0(temp.top, key, ",")
- return(bib.cite) 
-}
-
-for(i in package.vector) {
- print(getBibTex(i))
-}
-@
-\end{filecontents}
-
