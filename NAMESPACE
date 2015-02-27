@@ -35,19 +35,21 @@ import(foreach, plyr, cn.mops, Rsamtools, exomeCopy, matrixStats, xlsx, ggplot2)
 # Maybe it should be removed..
 # To keep public
 export(Background)    # is this to keep?
-export(BackgroundReport)
 export(ReportTables)
 export(BedToGenomicRanges)
 export(ReadCountsFromBam)
 export(BootList)
-export(IndexMultipleBams)
-export(SignificantGenes)
 export(PlotBootstrapDistributions)
 export(CombinedNormalizedCounts)
-export(WriteReadCountsToXLSX)
+
+# TODO MAKE IT PRIVATE...
+#export(BackgroundReport)
+#export(IndexMultipleBams)
+#export(SignificantGenes)
+#export(WriteReadCountsToXLSX)
 export(WriteListToXLSX)
-export(ReadXLSXToList)
-export(GenerateSynthetic)
+#export(ReadXLSXToList)
+#export(GenerateSynthetic)
 
 
 # TODO: uncomment after creating the missing documentation

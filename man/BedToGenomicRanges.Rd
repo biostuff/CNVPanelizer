@@ -30,14 +30,9 @@ A \code{GenomicRanges} object containing information about the amplicons describ
 Thomas Wolf, Cristiano Oliveira
 }
 
-
 \examples{
-
-
 \dontrun{
-
-bedFilepath <- file.path("someFile.bed")
-ampliconColumn <- 4
-BedToGenomicRanges(bedFilepath, ampliconColumn)
-}
+    bedFilepath <- file.path("someFile.bed")
+    ampliconColumn <- 4
+    BedToGenomicRanges(bedFilepath, ampliconColumn)}
 }

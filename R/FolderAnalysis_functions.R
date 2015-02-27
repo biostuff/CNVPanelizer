@@ -116,11 +116,20 @@ ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames = ele
 #   return(curbam)
 # }
 
-
-GenerateSynthetic <- function(numberOfSamples,numberOfGenes,amplCount,status = NULL,cnvProb = 1/10,label = "Sample",lambdaNor = 1000,lambdaAmp = 1.5 * lambdaNor,lambdaDel = 1/1.5 * lambdaNor,rdist = rpois,varyCoverage =TRUE,seed = 123)
-{
+GenerateSynthetic <- function(numberOfSamples,
+                              numberOfGenes,
+                              amplCount,
+                              status = NULL,
+                              cnvProb = 1/10,
+                              label = "Sample",
+                              lambdaNor = 1000,
+                              lambdaAmp = 1.5 * lambdaNor,
+                              lambdaDel = 1/1.5 * lambdaNor,
+                              rdist = rpois,
+                              varyCoverage =TRUE,
+                              seed = 123) {
   set.seed(seed)
-  if(varyCoverage == TRUE) {
+  if(varyCoverage) {
     coverageVariability = sample(1:10,numberOfSamples,replace = TRUE)
   } else{
     coverageVariability = rep(1,numberOfSamples)
@@ -132,32 +141,25 @@ GenerateSynthetic <- function(numberOfSamples,numberOfGenes,amplCount,status = N
   #seqAmpl = minAmpl:maxAmpl
   #amplCount = sample(seqAmpl,numberOfGenes,replace = TRUE,prob = 1/seqAmpl)
 
-  samples = foreach(i = 1:numberOfSamples,.combine=cbind) %:% 
-    foreach(j = 1:numberOfGenes,.combine =  c) %do%
-{
-  if(is.null(status)) {
+    # TO avoid complaints from "R CMD check" ..
+    i <- NULL
+    j <- NULL
+  
+    samples = foreach(i = 1:numberOfSamples, .combine=cbind) %:%
+    foreach(j = 1:numberOfGenes, .combine = c) %do% {
+      if(is.null(status)) {
+        lambda = sample(c(coverageVariability[i] * lambdaDel, coverageVariability[i] * lambdaNor, coverageVariability[i] * lambdaAmp), 1, prob = c(cnvProb, 1, cnvProb))
+      } else {
+        lambda =  status[[i]][j] * lambdaNor * coverageVariability[i]
+      }
+    rdist(amplCount[j],lambda)
+    }
 
-    lambda = sample(c(coverageVariability[i]  * lambdaDel,coverageVariability[i] * lambdaNor,coverageVariability[i] * lambdaAmp),1,prob = c(cnvProb,1,cnvProb))
-
-  }else{
-
-    lambda =  status[[i]][j] * lambdaNor *  coverageVariability[i]
-
-  }
-
-  rdist(amplCount[j],lambda)
-
+  colnames(samples) = paste0(label, "_", 1:numberOfSamples)
+  geneNames = paste0("Gene_", rep(1:numberOfGenes, amplCount))
+  rownames(samples) = geneNames
+  return(samples)
 }
-
-colnames(samples) = paste0(label,"_",1:numberOfSamples)
-#name of genes
-geneNames = paste0("Gene_",rep(1:numberOfGenes,amplCount)) 
-rownames(samples) = geneNames
-
-return(samples)
-}
-
-
 
 #get the combined counts
 #CombinedNormalizedCounts <- function(sampleCounts, referenceCounts, gr, amplicons = elementMetadata(gr) ampliconNames) {
@@ -369,73 +371,61 @@ ReferenceWeights <- function(refmat, varianceFunction = IQR) {
     return(weights)
 }
 
-# #split into a function generating the bootstrap distribution
-# 
-# 
-# #and a function averageing over amplicons ?
-# 
-#
-#define the function to generate bootstrap distributions
-#and return a list with the genewise bootstrapping
-BootList <- function(geneNames, sampleMatrix, refmat, reps, refWeights = ReferenceWeights(refmat)) {
-
-    #get the genes positions in the matrix as a list from a gene name vector
-    genesPos = IndexGenesPositions(geneNames)
+# #split into a function generating the bootstrap distribution #and a function averaging over amplicons.
+# define the function to generate bootstrap distributions and return a list with the genewise bootstrapping
+BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
   
-    #a vector and matrix are not the same and for a vector iterating over the column
-    #makes no sense so we have to check if a mtrix or a vector was passed.
-    #ncol only works for matrix not for vector
-    if(class(sampleMatrix) == "matrix") {
-        iterator =  1:ncol(sampleMatrix)
+  # get the genes positions in the matrix as a list from a gene name vector
+  genesPos <- IndexGenesPositions(geneNames)
+  
+  # a vector and matrix are not the same and for a vector iterating over the column makes no sense so we have
+  # to check if a mtrix or a vector was passed. ncol only works for matrix not for vector
+  if (class(sampleMatrix) == "matrix") {
+    iterator <- 1:ncol(sampleMatrix)
+  } else {
+    iterator <- 1
+  }
+  
+  i <- NULL
+  j <- NULL
+  bootListSamples <- foreach(i = iterator) %:% foreach(j = rep(1, replicates), .combine = rbind) %dopar% {
+    # a vector and matrix are not the same and for a vector iterating over the column makes no sense so we have
+    # to chekc if a mtrix or a vector was passed.
+    if (class(sampleMatrix) == "matrix") {
+      testSample <- sampleMatrix[, i]
     } else {
-        iterator = 1
+      testSample <- sampleMatrix
     }
-
-    # Package check complains...
-    i <- NULL
-    j <- NULL
-    bootListSamples = foreach(i = iterator) %:%
-        foreach(j = rep(1,reps), .combine = rbind) %dopar% {
-            #a vector and matrix are not the same and for a vector iterating over the column
-            #makes no sense so we have to chekc if a mtrix or a vector was passed.
-            if(class(sampleMatrix) == "matrix") {
-              testSample = sampleMatrix[,i]
-            } else {
-              testSample = sampleMatrix
-            }
-            #for each gene bootstrap the amplicon positions independently
-            #gene_boot_pos  = c(lapply(genes_pos,bootstrap_pos),recursive =  TRUE)
-            
-            #for each gene subsample the amplicon positions independently
-            
-            #sample the samples using bootstrapping samples with a high IQR are samples less often
-            sampleBootPos = sample(1:ncol(refmat),ncol(refmat),prob = refWeights,replace = TRUE)
-            
-            
-            geneBootPos  = c(lapply(genesPos, SubsamplingPositions),recursive =  TRUE)
-            
-            
-            #given the obtained sampling using the bootstraps calulated above
-            bootRatio =testSample[geneBootPos]/rowMedians(refmat[geneBootPos,sampleBootPos])
-            #boot_ratio =testsample[]/rowMedians(refmat[,sample_boot_pos])
-      
-            #after the bootstrapping the gene positions in the vector changes so recalculate them
-            adjustedLength <- function(a) {  round(sqrt(length(a))) }
-            
-            splitClass = rep(names(genesPos),sapply(genesPos,adjustedLength))
-#            print(splitClass)
-            newGenesPos =  split(seq_along(splitClass),splitClass)
-            #print(newGenesPos)
-            #check if this also works for subsampling
-            #then switch to subsampling
-            
-            sapply(newGenesPos, PositionMedian,vector = bootRatio)
-        }
-
-    # TODO fix this naming to be more flexible and not depend on filenames..
-#    names(bootListSamples) <- basename(colnames(sampleMatrix))
-     names(bootListSamples) <- basename(colnames(sampleMatrix))
-    return(bootListSamples)
+    
+    
+    # for each gene subsample the amplicon positions independently
+    
+    # sample the samples using bootstrapping
+    sampleBootPos <- sample(1:ncol(refmat), ncol(refmat), replace = TRUE)
+    
+    
+    geneBootPos <- c(lapply(genesPos, SubsamplingPositions), recursive = TRUE)
+    
+    
+    # given the obtained sampling using the bootstraps calulated above
+    bootRatio <- testSample[geneBootPos]/rowMedians(refmat[geneBootPos, sampleBootPos])
+    
+    
+    # after the bootstrapping the gene positions in the vector changes so recalculate them
+    adjustedLength <- function(a) {
+      round(sqrt(length(a)))
+    }
+    
+    splitClass <- rep(names(genesPos), sapply(genesPos, adjustedLength))
+    
+    newGenesPos <- split(seq_along(splitClass), splitClass)
+    
+    
+    sapply(newGenesPos, PositionMedian, vector = bootRatio)
+  }
+  
+  names(bootListSamples) <- basename(colnames(sampleMatrix))
+  return(bootListSamples)
 }
 
 #calculate significance 
@@ -487,7 +477,7 @@ AmplProbMultipeSamples <- function(genePosNonSig) {
 }
 
 Background <- function(geneNames, samplesNormalizedReadCounts, referenceNormalizedReadCounts, bootList, replicates = 1000) {
-  
+
   #which genes showed significant changes
   sigList <- CheckSignificance(bootList)
   # gene index
@@ -510,40 +500,114 @@ Background <- function(geneNames, samplesNormalizedReadCounts, referenceNormaliz
   }
   return(backgroundObject)
 }
-  
 
-ReportTables <- function(bootList, geneNames, backgroundNoise, referenceNormalizedReadCounts,samplesNormalizedReadCounts , tableNames = seq_along(backgroundReport)) {
+round_df <- function(x, digits) {
+  # round all numeric variables
+  # x: data frame 
+  # digits: number of digits to round
+#  numeric_columns <- sapply(x, mode) == 'numeric'
+  numeric_columns <- sapply(x, is.numeric)
+  x[numeric_columns] <-  round(x[numeric_columns], digits)
+  x
+}
+
+ReportTables <- function(bootList,
+                         geneNames,
+                         backgroundNoise,
+                         referenceNormalizedReadCounts,
+                         samplesNormalizedReadCounts) {
   
-  #get the background noise in a format that can be used for a report table
-   backgroundReport <- BackgroundReport(backgroundNoise,geneNames)
+  # get the background noise in a format that can be used for a report table
+  backgroundReport <- BackgroundReport(backgroundNoise, geneNames)
   
   
-    #gene index 
-    genesPositionsIndex = IndexGenesPositions(geneNames)
-    
-    #calculate the reference median
-    refMedian = apply(referenceNormalizedReadCounts, 1, median)
-    
-    #calculate the ratio matrix for each sample
-    ratioMatrix = RatioMat(samplesNormalizedReadCounts, refMedian)
-      
-    #calculate the genewise ratio matrix from the ratio_mat
-    ratioMatGene =  GeneMedianRatioMatrix(genesPositionsIndex, ratioMatrix)
+  # gene index
+  genesPositionsIndex <- IndexGenesPositions(geneNames)
   
-    sigList = CheckSignificance(bootList)
-    # TODO because package generaton complains..
-    i <- NULL
-    reportTables =  foreach(i = seq_along(backgroundReport)) %do% {
-        isSig = (sigList[[i]][, 2] < 1  &  sigList[[i]][, 1] < 1) |  (sigList[[i]][, 2] > 1  &  sigList[[i]][, 1] > 1) 
-        backgroundUp =  1.5 * (backgroundReport[[i]][, 2] - 1) 
-        backgroundDown = 1.5 * (1 - backgroundReport[[i]][, 1])
-        aboveNoise =  (ratioMatGene[, i] > 1 &  (ratioMatGene[,i] - 1) > backgroundUp) | (ratioMatGene[, i] < 1 & (1 - ratioMatGene[, i]) > backgroundDown)
-        up = apply(bootList[[i]],2, PercentAboveValue, value = 2)
-        down = apply(bootList[[i]],2, PercentBelowValue, value = 0.5)
-        data.frame(medianRatio = ratioMatGene[, i], up = up, down = down, fivePercentQuantile =  sigList[[i]][, 1], ninetyFivePercentQuantile = sigList[[i]][, 2], fivePercentNoise = backgroundReport[[i]][, 1], ninetyfivePercentNoise =backgroundReport[[i]][, 2], significant = isSig, aboveNoise = aboveNoise, amplNum = table(geneNames), passed = isSig + aboveNoise)
-    }
-    names(reportTables) = tableNames
-    return(reportTables)
+  # calculate the reference median
+  #refMedian <- apply(referenceNormalizedReadCounts, 1, median)
+  refMedian <- rowMedians(referenceNormalizedReadCounts)
+  
+  # calculate the ratio matrix for each sample
+  ratioMatrix <- RatioMat(samplesNormalizedReadCounts, refMedian)
+  
+  # calculate the genewise ratio matrix from the ratio_mat
+  ratioMatGene <- GeneMedianRatioMatrix(genesPositionsIndex, ratioMatrix)
+  
+  sigList <- CheckSignificance(bootList)
+  # TODO because package generaton complains..
+  i <- NULL
+  reportTables <- foreach(i = seq_along(backgroundReport)) %do% {
+    isSig <- (sigList[[i]][, 3] < 1) | (sigList[[i]][, 1] > 1)
+    backgroundUp <- 1 * (backgroundReport[[i]][, 2] - 1)
+    backgroundDown <- 1 * (1 - backgroundReport[[i]][, 1])
+    aboveNoise <- (ratioMatGene[, i] > 1 & (ratioMatGene[, i] - 1) > backgroundUp) | (ratioMatGene[, i] < 
+                                                                                        1 & (1 - ratioMatGene[, i]) > backgroundDown)
+    up <- apply(bootList[[i]], 2, PercentAboveValue, value = 1.5)
+    down <- apply(bootList[[i]], 2, PercentBelowValue, value = 0.5)
+
+
+#     data.frame(medianRatio = ratioMatGene[, i],
+#                up = up,
+#                down = down,
+#                fivePercentQuantile = sigList[[i]][, 1],
+#                fiftyPercentQuantile = sigList[[i]][, 2],
+#                ninetyFivePercentQuantile = sigList[[i]][, 3],
+#                fivePercentNoise = backgroundReport[[i]][, 1],
+#                ninetyfivePercentNoise = backgroundReport[[i]][, 2],
+#                significant = isSig,
+#                aboveNoise = aboveNoise,
+#                amplNum = table(geneNames),
+#                passed = isSig + aboveNoise)
+
+    dfTemp <- data.frame(medianRatio = ratioMatGene[, i],
+               up = up,
+               down = down,
+               fivePercentQuantile = sigList[[i]][, 1],
+               fiftyPercentQuantile = sigList[[i]][, 2],
+               ninetyFivePercentQuantile = sigList[[i]][, 3],
+               fivePercentNoise = backgroundReport[[i]][, 1],
+               ninetyfivePercentNoise = backgroundReport[[i]][, 2],
+               significant = isSig,
+               aboveNoise = aboveNoise,
+               amplNum = as.vector(table(geneNames)),
+               passed = isSig + aboveNoise)
+
+    significativeNumbers <- 2
+
+    dfTemp <- round_df(dfTemp, significativeNumbers)
+
+#     names(dfTemp) <- c("MedRat",
+#                       "Up",
+#                       "Down",
+#                       "5%Qte",
+#                       "50%Qte",
+#                       "95%Qte",
+#                       "5%Nse",
+#                       "95%Nse",
+#                       "Signif.",
+#                       "AbvNse",
+#                       "ANum",
+#                       "Psd")
+
+
+names(dfTemp) <- c("MedianRatio",
+                   "Up",
+                   "Down",
+                   "5% Quantile",
+                   "50% Quantile",
+                   "95% Quantile",
+                   "5% Noise",
+                   "95% Noise",
+                   "Signif.",
+                   "AboveNoise",
+                   "Amplicons",
+                   "Passed")
+
+    dfTemp
+  }
+  names(reportTables) <- seq_along(reportTables)
+  return(reportTables)
 }
 
 BackgroundReport <- function(background, geneNames) {
@@ -731,43 +795,92 @@ IterateAmplNum <- function(uniqueAmpliconNumbers, ratios, replicates = 100, prob
 # 
 # ####################################################################################################################################
 # ## Visualize the results
+# NOT BEING USED AT THIS POINT .. MAYBE IN FUTURE..
 # ####################################################################################################################################
-PlotBootstrapDistributions <- function(bootList, reportTables, outputFolder) {
-    # TODO Needed because of package check complaints..
-    i <- NULL
-    for(i in seq_along(bootList)) {
-        selSample = i
-        test = as.factor(reportTables[[selSample]][, "passed"])
-        test = revalue(test,c("0" = "noChange","1" =  "significantChange","2" = "aboveNoise"))
-        
-        # Package check complaints...
-        ratios <- NULL
-        testsPassed <- NULL
-        
-        df = data.frame(class = as.factor(colnames(bootList[[selSample]])), ratios = (as.vector(t(bootList[[selSample]]))), testsPassed = test)
+# bedToGeneOrder <- function(gr) {
+#   
+#   geneNames <- gr$geneNames
+#   chromosomes <- as.character(seqnames(gr)) 
+#   starts <-  start(gr)
+#   
+#   geneStart <- aggregate(starts,list(geneNames),min)[,2]
+#   geneChromosome <- aggregate(chromosomes,list(geneNames),unique)[,2]
+#   
+#   chromosomes <- gsub("chr", "",geneChromosome,ignore.case = TRUE)
+#   chromosomes <- gsub("X", "22",chromosomes,ignore.case = TRUE)
+#   chromosomes <- as.numeric(gsub("Y", "23",chromosomes,ignore.case = TRUE))
+#   divider =  10 ^max(nchar(geneStart)) 
+#   geneOrderer <- chromosomes + geneStart/divider
+#   
+#   return(rank(geneOrderer))  
+# }
+
+PlotBootstrapDistributions <- function(bootList, reportTables, outputFolder = getwd(), sampleNames = NULL, save = FALSE) {
+
+  i <- NULL
+  plotList <- foreach(i = seq_along(bootList)) %do% {
+    #for (i in seq_along(bootList)) {
+    selSample <- i
+    test <- as.factor(reportTables[[selSample]][, "Passed"])
+    test <- revalue(test, c(`0` = "noChange", `1` = "nonReliableChange", `2` = "ReliableChange"))
+
     
-        filename <- names(bootList[selSample])
-        
-        test =  ggplot(df, aes(x=class, y=log(ratios),fill=testsPassed)) +
-                geom_boxplot() + 
-                ggtitle(filename) +
-                theme(plot.title = element_text(lineheight=.8, face="bold"), text = element_text(size=15), axis.text.x = element_text(angle=90, vjust=1))
+    ratios <- NULL
+    testsPassed <- NULL
     
-    #     test + ggtitle(filename)
-        
-        dir.create(outputFolder, recursive = TRUE, showWarnings = FALSE)
+    df <- data.frame(class = as.factor(colnames(bootList[[selSample]])), ratios = (as.vector(t(bootList[[selSample]]))), 
+                     testsPassed = test)
     
-#        filepath = paste0(outputFolder, filename, "_plot.pdf")
-        filepath = paste0(outputFolder, "/", filename, "_plot.pdf")
     
-    #     ggsave(filename = paste0(i,"_plot.pdf"),plot = test,height = 7.42 * 1,width = 8.11 * 2,limitsize = FALSE)
-        ggsave(filename=filepath, plot=test, height=7.42 * 1, width=8.11 * 2, limitsize=FALSE)
+    #if a genomic ranges object has been 
+    #if(!is.null(gr)) {
+    # newGeneOrder <- bedToGeneOrder(gr)
+    # df$class = with(df,factor(class,levels(class)[newGeneOrder]))
+    #}
+    
+    
+    ylim1 <- boxplot.stats((df$ratios))$stats[c(1, 5)]
+    ylim1 <- c(max(ylim1),max(ylim1))
+    ylim1 <- log(ylim1)
+    ylim1 <- ylim1 * c(-7,7)
+    
+    if(is.null(sampleNames)) {
+      
+      filename <- names(bootList[selSample])
+      
+    }else{
+      
+      filename <- sampleNames[selSample]
+      
+    } 
+    
+    
+    
+    test <- ggplot(df, aes(x = class, y = log(ratios), fill = testsPassed)) + geom_boxplot() + ggtitle(filename) + 
+      theme(plot.title = element_text(lineheight = 0.8, face = "bold"), text = element_text(size = 15), 
+            axis.text.x = element_text(angle = 90)) + scale_fill_manual(name = "CNV Reliability", values = c("#56B4E9", "#CC79A7" ,"#D55E00")
+                                                                        , labels = c("0" = "Foo", "1" = "Bar")) + coord_cartesian(ylim = ylim1) + theme(axis.text=element_text(size=20),axis.title=element_text(size=20,face="bold")) + 
+      scale_x_discrete("Gene Names") + geom_hline(yintercept=log(1.5), color="#009E73") + geom_hline(yintercept=log(0.5), color="#009E73") + geom_hline(yintercept=0, color="#009E73") 
+    
+    if(save == TRUE) {
+      
+      dir.create(outputFolder, recursive = TRUE, showWarnings = FALSE)
+      
+      
+      filepath <- paste0(outputFolder, "/", filename, "_plot.pdf")
+      
+      
+      ggsave(filename = filepath, plot = test, height = 7.42 * 1, width = 8.11 * 2, limitsize = FALSE)
+      
     }
+    
+    return(test)
+    
+  }
+  
+  return(plotList)
+  
 }
-
-
-
-
 
 #
 # PlotBootstrapDistributions <- function(bootList, reportTables, outputFolder) {

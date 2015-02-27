@@ -9,7 +9,7 @@
 
 }
 \usage{
-BootList(geneNames, sampleMatrix, refmat, reps, refWeights)
+BootList(geneNames, sampleMatrix, refmat, replicates)
 }
 \arguments{
   \item{geneNames}{
@@ -23,13 +23,10 @@ BootList(geneNames, sampleMatrix, refmat, reps, refWeights)
      A matrix of the read counts obtianed from the reference samples.
      Columns represent reference samples and rows amplicons.
 }
-  \item{reps}{
+  \item{replicates}{
      How many bootstrap replicates should be performed.
 }
-  \item{refWeights}{
-     A numeric vector that allows for the weighting of reference samples.
-     Reference samples with a higher weight will be sampled more often.
-}
+
 }
 
 \value{
@@ -50,15 +47,30 @@ BootList(geneNames, sampleMatrix, refmat, reps, refWeights)
 \examples{
 %% TODO create some
 
-\dontrun{
-  
-   bootList = BootList(genesPositionsIndex,
-                    samplesNormalizedReadCounts,
-                    referenceNormalizedReadCounts,
-                    reps = replicates,
-                    refWeights = NULL)
-
+\dontshow{
 }
+data(sampleReadCounts)
+data(referenceReadCounts)
+## Gene names should be same size as row columns
+geneNames <- row.names(referenceReadCounts)
+
+ampliconNames <- NULL
+
+normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
+                                                 referenceReadCounts,
+                                                 amplicons = ampliconNames)
+
+# After normalization data sets need to be splitted again to perform bootstrap
+samplesNormalizedReadCounts = normalizedReadCounts["samples"][[1]]
+referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
 
 
+replicates <- 10
+
+
+# Perform the bootstrap based analysis
+BootList(geneNames,
+         samplesNormalizedReadCounts,
+         referenceNormalizedReadCounts,
+         replicates = replicates)
 }

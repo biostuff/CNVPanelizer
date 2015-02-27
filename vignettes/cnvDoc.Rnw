@@ -95,14 +95,14 @@ library(CNVPanelizer)
 % \subparagraph{} % level 5
 %\subsubsubsection{Loading BED data}
 
-The BED file is required to obtain amplicon and gene names information associated with the panel.
+The BED file is required to obtain amplicon and gene name information associated with the panel.
 
 <<LoadingBED, echo=TRUE, eval=FALSE>>=
 
 # Bed file defining the amplicons
 bedFilepath <- "/somePath/someFile.bed"
 
-# The Column number at the BED file where the amplicon column names are
+# The column number at the BED file where the amplicon column names are
 ampliconColumnNumber <- 4
 
 # Extract the information from a bed file
@@ -118,7 +118,7 @@ ampliconNames = metadataFromGenomicRanges["ampliconNames"][, 1]
 
 \subsubsection{Selecting files}
 
-Two sets of data are required. The sample of interest and the set of reference bam files to compare against.
+Two sets of data are required. The samples of interest and the set of reference bam files to compare against.
 
 <<LoadingPathsAndFilenames, echo = TRUE, eval=FALSE>>=
 
@@ -128,12 +128,12 @@ sampleDirectory <- "/somePathToTestData"
 # Directory with the reference data
 referenceDirectory <- "/somePathToReferenceData"
 
-# vector with test filenames
+# Vector with test filenames
 sampleFilenames <- list.files(path = sampleDirectory,
                               pattern = ".bam$",
                               full.names = TRUE)
 
-# vector with reference filenames
+# Vector with reference filenames
 referenceFilenames <- list.files(path = referenceDirectory,
                                  pattern = ".bam$",
                                  full.names = TRUE)
@@ -143,7 +143,7 @@ referenceFilenames <- list.files(path = referenceDirectory,
 %\paragraph{Counting Reads}
 \subsubsection{Counting reads}
 
-The reads were counted using the \textbf{ExomeCopy} package from the Bioconductor project. All reads overlapping with the region of an amplicon were counted for this amplicon. Only reads with a mapping quality $\geq 20$ were counted. The function implemented in the ExomeCopy package allows to remove PCR Duplicates. For reads with the same start site, end site and chromosomal orientation only one is kept. PCR duplicates do not have a large influence on the ratio between reference and sample, still this might serve as an additional quality control step in a CNV detection pipeline.
+The reads were counted using a wrapper function around the \textbf{ExomeCopy} package from the Bioconductor project. All reads overlapping with the region of an amplicon were counted for this amplicon. Only reads with a mapping quality $\geq 20$ were counted and the function allows to remove PCR Duplicates. For reads with the same start site, end site and chromosomal orientation only one is kept. PCR duplicates do not have a large influence on the ratio between reference and sample, still this might serve as an additional quality control step in a CNV detection pipeline.
 
 \newpage
 
@@ -169,9 +169,7 @@ sampleReadCounts <- ReadCountsFromBam(sampleFilenames,
 
 \subsubsection{Using Synthetic Data}
 
-You can also use synthetic data to test the functions.
-The following examples make use of two synthetically generated data sets.
-One for the reference and one as a testing set.
+We also make available synthetic data to test the functions. The following examples make use of two generated data sets, one for the reference and the other as a testing set
 
 <<LoadingSyntheticData, echo = TRUE>>=
 data(testSamples)
@@ -187,7 +185,7 @@ ampliconNames <- NULL
 
 \subsection{Normalization}
 
-To account for sample and sequencing run specific variations the counts obtained for each sample were normalized using the \textbf{cn.mops} package.
+To account for sample and sequencing run specific variations the counts obtained for each sample were normalized using a wrapper function around the normalization from the \textbf{cn.mops} package.
 <<NormalizedReadCounts, echo = TRUE>>=
 
 normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
@@ -200,9 +198,9 @@ referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
 
 @
 
-\subsection{Bootstrap Based CNV}
+\subsection{Bootstrap based CNV}
 
-This aproach is similar to the Random forest or Random k-nearest neighbour methodologies, which bootstrap the samples and subsample the features. In our case features would be equivalent to amplicons. The subsampling procedure is repeated n times to generate a large set of randomized synthetic references $B = b_1,\ldots,b_n$ by selecting with replacement (boostrapping) from the set of reference samples. The ratio between the sample of interest and each randomized reference is calculated for each gene, using only a subset of the amplicons associated with each gene.
+This aproach is similar to the Random forest or Random k-nearest neighbour methodologies, which bootstrap the samples and subsample the features. In our case features would be equivalent to amplicons. The subsampling procedure is repeated n times to generate a large set of randomized synthetic references $B = b_1,\ldots,b_n$ by selecting with replacement (boostrapping) from the set of reference samples. The ratio between the sample of interest and each randomized reference is calculated for each gene, using only a subset of the amplicons associated with each gene. A change is considered as significant if the the finding was deemed significant a q50 > 1.5 can be considered an amplification while for q50 < 0.5 we assume a deletion.
 
 <<BootList, echo = TRUE,message=FALSE,warning=FALSE>>=
 
@@ -279,22 +277,16 @@ reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, ]
     \label{fig:reportTable}
 \end{figure}
 
-
-  \begin{table}[hb]
-    \centering
+  \begin{table}[h]
     \begin{tabular}{| l | p{15cm} |} \hline
-    Median Ratio & The median ratio \\ \hline
-    Up & Up Regulated \\ \hline
-    Down & Down Regulated \\ \hline
-    5\% Quantile & The 5\% quantile of the bootstrap distribution\\ \hline
-    50\% Quantile & The 50\% quantile of the bootstrap distribution\\ \hline
-    95\% Quantile & The 95\% quantile of the bootstrap distribution\\ \hline
-    5\% Noise & The 5\% noise \\ \hline
-    95\% Noise & The 95\% noise \\ \hline
-    Sign. & Boolean value representing if the read counts differences are Significative \\ \hline
-    Above Noise & Boolean value representing if the median ratio is above Noise \\ \hline
-    Ampl. Number & Number of Amplicons associated with the gene \\ \hline
-    Passed & if there is a detected aberration which the value is above noise the Value will be 1, otherwise 0 \\ \hline
+    Median Ratio & The median amplicon ratio between reference and sample of interest for the gene\\ \hline
+    Up | Down & Percentage of how often the bootstrap ratio is above|below 1.5 \\ \hline
+    5\% | 50\% | 95\% Quantile & The quantiles of the bootstrap distribution\\ \hline
+    5\% | 95\% Noise & The quantiles of the background noise. Background noise is the distribution of median ratios between reference and sample of interest, when no significant change is present. \\ \hline
+    Signif. & Boolean value representing if read counts differences are Significant \\ \hline
+    AboveNoise & Boolean value representing if median ratio is above noise \\ \hline
+    Amplicons & Number of Amplicons associated with the gene \\ \hline
+    Passed & if both  Signif. and AboveNoise are TRUE then 2, if only one is TRUE then 1 and if both are FALSE then 0 \\ \hline
     \end{tabular}
   \label{table:reportTableColumnDescription}
   \caption{Report table Column Description}
@@ -337,11 +329,7 @@ WriteListToXLSX(list(samplesReadCount = samplesNormalizedReadCounts,
 
 
 <<JustToShowBootstrapPlot, echo = TRUE, eval=FALSE, message=FALSE, warning=FALSE>>=
-
-#outputDirectory <- "D:/data/NGS/CNVPanelizerResults"
-sampleIndexToShow <- 4
-#PlotBootstrapDistributions(bootList, reportTables, outputDirectory)[[sampleIndexToShow]]
-PlotBootstrapDistributions(bootList, reportTables)[[sampleIndexToShow]]
+PlotBootstrapDistributions(bootList, reportTables)
 @
 
 % \begin{figure}[H]
@@ -357,6 +345,7 @@ PlotBootstrapDistributions(bootList, reportTables)[[sampleIndexToShow]]
 
 <<BootstrapPlot, echo=FALSE, fig.align='center', fig.cap='Plot for a single Test sample', out.width='0.7\\linewidth', fig.height=4, fig.width='\\linewidth'>>=
 #PlotBootstrapDistributions(bootList, reportTables, outputDirectory)[[sampleIndexToShow]]
+sampleIndexToShow <- 4
 PlotBootstrapDistributions(bootList, reportTables)[[sampleIndexToShow]]
 @
 
@@ -366,8 +355,8 @@ PlotBootstrapDistributions(bootList, reportTables)[[sampleIndexToShow]]
   \centering
     \begin{tabular}{| l | p{15cm} |} \hline
     No Change & There is no change in the read count \\ \hline
-    Non Reliable Change & There is some change but is below the noise level \\ \hline
-    Reliable Change & The change is above the noise level \\ \hline
+    Non Reliable Change & There is some change but is below the noise level, but not significant\\ \hline
+    Reliable Change & The change is above the noise level and significant \\ \hline
     \end{tabular}
   \label{table:plotLabelDescription}
   \caption{Description of the CNV detection levels}

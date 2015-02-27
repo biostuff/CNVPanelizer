@@ -10,7 +10,7 @@
 Background(geneNames,
            samplesNormalizedReadCounts,
            referenceNormalizedReadCounts,
-           sigList,
+           bootList,
            replicates = 1000)
 }
 \arguments{
@@ -23,8 +23,8 @@ Background(geneNames,
   \item{referenceNormalizedReadCounts}{
   A matrix with the normalized reference read counts
 }
-  \item{sigList}{
-  a list as returned by CheckSignificance
+  \item{bootList}{
+  A list as returned by BootList
 }
   \item{replicates}{
     an integer number of how many replicates should be performed
@@ -41,20 +41,44 @@ Background(geneNames,
   Cristiano Oliveira, Thomas Wolf
 }
 
-
 %% ~Make other sections like Warning with \section{Warning }{....} ~
-
 
 \examples{
 
-\dontrun{
+data(sampleReadCounts)
+data(referenceReadCounts)
+## Gene names should be same size as row columns
+geneNames <- row.names(referenceReadCounts)
+
+ampliconNames <- NULL
+
+normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
+                                                 referenceReadCounts,
+                                                 amplicons = ampliconNames)
+
+# After normalization data sets need to be splitted again to perform bootstrap
+samplesNormalizedReadCounts = normalizedReadCounts["samples"][[1]]
+referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
+
+
+replicates <- 10
+
+# Perform the bootstrap based analysis
+bootList <- BootList(geneNames,
+                     samplesNormalizedReadCounts,
+                     referenceNormalizedReadCounts,
+                     replicates = replicates)
+
 
 Background(geneNames,
            samplesNormalizedReadCounts,
            referenceNormalizedReadCounts,
-           sigList,
+           bootList,
            replicates = 1000)
 
-}
+
+%\dontrun{
+%}
+
 }
 

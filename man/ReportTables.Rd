@@ -13,8 +13,7 @@ ReportTables(bootList,
              geneNames,
              backgroundNoise,
              referenceNormalizedReadCounts,
-             samplesNormalizedReadCounts,
-             tableNames)
+             samplesNormalizedReadCounts)
 }
 %% TODO create some argument list
 \arguments{
@@ -33,9 +32,6 @@ ReportTables(bootList,
   \item{samplesNormalizedReadCounts}{
      Describe \code{samplesNormalizedReadCounts} here
 }
-  \item{tableNames}{
-     Describe \code{tableNames} here
-}
 }
 
 \value{
@@ -53,13 +49,46 @@ ReportTables(bootList,
 
 \examples{
 
-\dontrun{
- ReportTables(bootList,
+%\dontshow{
+%}
+
+
+data(sampleReadCounts)
+data(referenceReadCounts)
+## Gene names should be same size as row columns
+geneNames <- row.names(referenceReadCounts)
+
+ampliconNames <- NULL
+
+normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
+                                                 referenceReadCounts,
+                                                 amplicons = ampliconNames)
+
+# After normalization data sets need to be splitted again to perform bootstrap
+samplesNormalizedReadCounts = normalizedReadCounts["samples"][[1]]
+referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
+
+
+replicates <- 10
+
+# Perform the bootstrap based analysis
+bootList <- BootList(geneNames,
+                     samplesNormalizedReadCounts,
+                     referenceNormalizedReadCounts,
+                     replicates = replicates)
+
+backgroundNoise = Background(geneNames,
+           samplesNormalizedReadCounts,
+           referenceNormalizedReadCounts,
+           bootList,
+           replicates = 1000)
+
+
+ReportTables(bootList,
              geneNames,
              backgroundNoise,
              referenceNormalizedReadCounts,
-             samplesNormalizedReadCounts,
-             tableNames)
+             samplesNormalizedReadCounts)
 }
 
-}
+

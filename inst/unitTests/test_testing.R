@@ -1,4 +1,3 @@
-
 test.bootList <- function() {
     kNumberOfReferenceMatrixLines <- 4
     kNumberOfReferenceMatrixColumns <- 4
@@ -31,18 +30,15 @@ test.bootList <- function() {
     bootList = BootList(geneNames,
                         sampleReadCounts,
                         referenceReadCounts,
-                        reps = kNumberOfReplicates,
-                        refWeights = NULL)
+                        replicates = kNumberOfReplicates)
 
     resultForGENE1 <- bootList[[1]]["GENE1"][[1]]
     resultForGENE2 <- bootList[[1]]["GENE2"][[1]]
 
-#     checkEquals(resultForGENE1, 0.1428571)
-#     checkEquals(resultForGENE2, 0.3666667)
-#   TODO fix this..
-    checkEquals(1, 1)
-
-    
+    tolerance <- 0.0001
+    checkEquals(resultForGENE1, 0.1428571, tolerance = tolerance)
+    checkEquals(resultForGENE2, 0.3666667, tolerance = tolerance)
+  
 #     # This values has small differents if you do the ratio of the means or vice versa..
 #     expectedResult <- list(data.frame("GENE1" = 0.1428571, "GENE2" = 0.3666667))
 # 

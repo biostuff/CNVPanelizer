@@ -36,18 +36,18 @@ A list object with
 
 \examples{
 
-\dontrun{
-#load the example data
-data(exampleData)
-normalizedList <-  CombinedNormalizedCounts(sampleReadCounts,
-                                                     referenceReadCounts,
- normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
-                                                     referenceReadCounts,
-                                                     genomicRangesFromBed,
-                                                     amplicons = ampliconNames)
+%\dontshow{
+%}
+data(sampleReadCounts)
+data(referenceReadCounts)
 
-}
+## Gene names should be same size as row columns
+geneNames <- row.names(referenceReadCounts)
+ampliconNames <- NULL
 
 
+normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
+                                                 referenceReadCounts,
+                                                 amplicons = ampliconNames)
 }
 
