@@ -172,12 +172,10 @@ sampleReadCounts <- ReadCountsFromBam(sampleFilenames,
 We also make available synthetic data to test the functions. The following examples make use of two generated data sets, one for the reference and the other as a testing set
 
 <<LoadingSyntheticData, echo = TRUE>>=
-data(testSamples)
-data(referenceSamples)
-sampleReadCounts <- testSamples
-referenceReadCounts <- referenceSamples
-## Gene names should be same size as row columns 
-geneNames <- row.names(referenceSamples)
+data(sampleReadCounts)
+data(referenceReadCounts)
+## Gene names should be same size as row columns
+geneNames <- row.names(referenceReadCounts)
 # Not defined for synthetic data
 ampliconNames <- NULL
 
@@ -211,8 +209,7 @@ replicates <- 10
 bootList <- BootList(geneNames,
                      samplesNormalizedReadCounts,
                      referenceNormalizedReadCounts,
-                     replicates = replicates,
-                     refWeights = NULL)
+                     replicates = replicates)
 @
 
 
