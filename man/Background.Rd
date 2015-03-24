@@ -11,6 +11,7 @@ Background(geneNames,
            samplesNormalizedReadCounts,
            referenceNormalizedReadCounts,
            bootList,
+           specificityLevel = 1.75,
            replicates = 1000)
 }
 \arguments{
@@ -24,6 +25,9 @@ Background(geneNames,
   A matrix with the normalized reference read counts
 }
   \item{bootList}{
+  A list as returned by BootList
+}
+  \item{specificityLevel}{
   A list as returned by BootList
 }
   \item{replicates}{
@@ -54,13 +58,13 @@ ampliconNames <- NULL
 
 normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
                                                  referenceReadCounts,
-                                                 amplicons = ampliconNames)
+                                                 ampliconNames = ampliconNames)
 
 # After normalization data sets need to be splitted again to perform bootstrap
 samplesNormalizedReadCounts = normalizedReadCounts["samples"][[1]]
 referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
 
-
+# Should be used values above 10000
 replicates <- 10
 
 # Perform the bootstrap based analysis
@@ -69,13 +73,12 @@ bootList <- BootList(geneNames,
                      referenceNormalizedReadCounts,
                      replicates = replicates)
 
-
 Background(geneNames,
            samplesNormalizedReadCounts,
            referenceNormalizedReadCounts,
            bootList,
-           replicates = 1000)
-
+           specificityLevel = 1.75,
+           replicates = replicates)
 
 %\dontrun{
 %}

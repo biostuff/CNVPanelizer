@@ -58,15 +58,14 @@ ampliconNames <- NULL
 
 normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
                                                  referenceReadCounts,
-                                                 amplicons = ampliconNames)
+                                                 ampliconNames = ampliconNames)
 
 # After normalization data sets need to be splitted again to perform bootstrap
 samplesNormalizedReadCounts = normalizedReadCounts["samples"][[1]]
 referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
 
-
+# Should be used values above 10000
 replicates <- 10
-
 
 # Perform the bootstrap based analysis
 BootList(geneNames,

@@ -9,28 +9,29 @@
   One data frame is generated for each sample of interest.
 }
 \usage{
-ReportTables(bootList,
-             geneNames,
-             backgroundNoise,
+
+ReportTables(geneNames,
+             samplesNormalizedReadCounts,
              referenceNormalizedReadCounts,
-             samplesNormalizedReadCounts)
+             bootList,
+             backgroundNoise)
 }
 %% TODO create some argument list
 \arguments{
-  \item{bootList}{
-     A list as returned by the  \code{BootList} function
-}
   \item{geneNames}{
      Describe \code{geneNames} here
 }
-  \item{backgroundNoise}{
-     A list of background noise as  returned by  the \code{Background} function.
+  \item{samplesNormalizedReadCounts}{
+     Describe \code{samplesNormalizedReadCounts} here
 }
   \item{referenceNormalizedReadCounts}{
      Describe \code{referenceNormalizedReadCounts} here
 }
-  \item{samplesNormalizedReadCounts}{
-     Describe \code{samplesNormalizedReadCounts} here
+  \item{bootList}{
+     A list as returned by the  \code{BootList} function
+}
+  \item{backgroundNoise}{
+     A list of background noise as  returned by  the \code{Background} function.
 }
 }
 
@@ -62,13 +63,13 @@ ampliconNames <- NULL
 
 normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
                                                  referenceReadCounts,
-                                                 amplicons = ampliconNames)
+                                                 ampliconNames = ampliconNames)
 
 # After normalization data sets need to be splitted again to perform bootstrap
 samplesNormalizedReadCounts = normalizedReadCounts["samples"][[1]]
 referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
 
-
+# Should be used values above 10000
 replicates <- 10
 
 # Perform the bootstrap based analysis
@@ -78,17 +79,14 @@ bootList <- BootList(geneNames,
                      replicates = replicates)
 
 backgroundNoise = Background(geneNames,
-           samplesNormalizedReadCounts,
-           referenceNormalizedReadCounts,
-           bootList,
-           replicates = 1000)
+                             samplesNormalizedReadCounts,
+                             referenceNormalizedReadCounts,
+                             bootList,
+                             replicates = replicates)
 
-
-ReportTables(bootList,
-             geneNames,
-             backgroundNoise,
+ReportTables(geneNames,
+             samplesNormalizedReadCounts,
              referenceNormalizedReadCounts,
-             samplesNormalizedReadCounts)
+             bootList,
+             backgroundNoise)
 }
-
-

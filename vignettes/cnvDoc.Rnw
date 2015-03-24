@@ -188,7 +188,7 @@ To account for sample and sequencing run specific variations the counts obtained
 
 normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
                                                  referenceReadCounts,
-                                                 amplicons = ampliconNames)
+                                                 ampliconNames = ampliconNames)
 
 # After normalization data sets need to be splitted again to perform bootstrap
 samplesNormalizedReadCounts = normalizedReadCounts["samples"][[1]]
@@ -238,11 +238,11 @@ The report includes a barplot with the bootstrap distribution for each gene. An 
 
 <<ReportTables, echo=TRUE, message=FALSE, warning=FALSE>>=
 # Build report tables
-reportTables <- ReportTables(bootList,
-                             geneNames,
-                             backgroundNoise,
+reportTables <- ReportTables(geneNames,
+                             samplesNormalizedReadCounts,
                              referenceNormalizedReadCounts,
-                             samplesNormalizedReadCounts)
+                             bootList,
+                             backgroundNoise)
 @
 
 At the figure~\ref{fig:reportTable} we can see an example of the report table for a single sample.

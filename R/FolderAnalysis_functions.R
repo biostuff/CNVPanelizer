@@ -1,7 +1,3 @@
-#library(stringr)
-#library(snow)
-#library(data.table)
-#library(WriteXLS)
 library(plyr)
 library(cn.mops)
 library(foreach)
@@ -11,41 +7,10 @@ library(exomeCopy)
 library(xlsx)
 library(ggplot2)
 
-
-# TODO generate functions to generate fake data 
-# lambda <- 1
-# rpois(1000, 1000*lambda)
-# hist(rpois(1000, 1000*lambda))
-
-# rJava causing errors..
-# Sys.setenv(JAVA_HOME='C:\\programs\\Java\\jre1.8.0_20')
-
-# Have added the directory where jvm.dll was..
-# C:\programs\Java\jre1.8.0_20\bin\server
-
-# Find the lib folder (where the packages are installed)
-# .libPaths()
-
-# set same proxy as the browser
-# Method1: Invoking R using --internet2
-
-# THIS DOES NOT WORK!?!
-#setInternet2(TRUE)
-
-# THIS WORKS!!!!!!
-#Setinternet2=TRUE
-
-# If you want internet2 to be used everytime you use R you could add the following line to the Rprofile.site file which is located in R.x.x\etc\Rprofile.site
-# utils::setInternet2(TRUE)
-
-
-
 ##################################################################################
 # functions to read the read counts
 ##################################################################################
-
-
-# 
+ 
 # SampleNameFromBam <-function(bamFileNames) {
 #     sampleNames = foreach(i = seq_along(bamFileNames),.combine = c) %do% {
 #     header <- scanBamHeader(bamFileNames[i])
@@ -57,14 +22,12 @@ library(ggplot2)
 #   }
 #   return(sampleNames)
 # }
-# 
+#
 # bamFileNames = "Z:\\Projekt Results\\Copy Numer Analysis\\ReferenceBam\\LCPv1\\E-2014-01020_1PG-94_IonXpress_019_rawlib.bam"
 # SampleNameFromBam(bamFileNames)
-#
-# BedToGenomicRanges <- function(bedFolder, panel, ampliconColumn, split = ";") {
+
 BedToGenomicRanges <- function(panelBedFilepath, ampliconColumn, split = ";") {
   #load the bed file
-  #     segments <- read.table(paste0(bedFolder, panel, ".bed"), sep = "\t", as.is = TRUE, skip = 1)
   segments <- read.table(panelBedFilepath, sep = "\t", as.is = TRUE, skip = 1)
   gr <- GRanges(segments[, 1], IRanges(segments[, 2], segments[, 3]))
   #get the amplicon names form the segments
@@ -76,7 +39,6 @@ BedToGenomicRanges <- function(panelBedFilepath, ampliconColumn, split = ";") {
   genes = foreach(i = seq_along(splitted)) %do% {
     splitted[[i]][1]
   }
-
 
   genes = unlist(genes)
   # missing the dollar symbol before text because of groovy..
@@ -91,7 +53,7 @@ BedToGenomicRanges <- function(panelBedFilepath, ampliconColumn, split = ";") {
 
 #load the files you want to analyze
 ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames = elementMetadata(gr)$ampliconNames, removeDup = FALSE) {
-  #ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames = elementMetadata(gr)["ampliconNames"], removeDup = FALSE) {
+#ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames = elementMetadata(gr)["ampliconNames"], removeDup = FALSE) {
   # TODO Because of package check complaints
   i <- NULL
   curbam = foreach(i = seq_along(bamFilenames), .combine = cbind) %do% {
@@ -102,20 +64,7 @@ ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames = ele
   return(curbam)
 }
 
-
-
-
-# ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames, removeDup = FALSE) {
-#   # TODO Because of package check complaints
-#   i <- NULL
-#   curbam = foreach(i = seq_along(bamFilenames), .combine = cbind) %do% {
-#       countBamInGRanges(bamFilenames[i], gr, remove.dup = removeDup, min.mapq = 20, get.width = TRUE)
-#   }
-#   colnames(curbam) <- sampleNames
-#   rownames(curbam) <- ampliconNames
-#   return(curbam)
-# }
-
+# functions to generate synthetic data
 GenerateSynthetic <- function(numberOfSamples,
                               numberOfGenes,
                               amplCount,
@@ -162,60 +111,22 @@ GenerateSynthetic <- function(numberOfSamples,
 }
 
 #get the combined counts
-#CombinedNormalizedCounts <- function(sampleCounts, referenceCounts, gr, amplicons = elementMetadata(gr) ampliconNames) {
-# TODO change amplicons to ampliconNames to have same parameter with the same name as in the other functions..
-CombinedNormalizedCounts <- function(sampleCounts, referenceCounts, amplicons = NULL) {
+CombinedNormalizedCounts <- function(sampleCounts, referenceCounts, ampliconNames = NULL) {
   #combine call samples and reference
   allCounts = cbind(sampleCounts, referenceCounts)
   classes = rep(c("samples", "reference"), c(ncol(sampleCounts), ncol(referenceCounts)))
   #normalize all samples
   bamDataRangesNorm = as.matrix((normalizeGenome(allCounts, normType = "median")))
-  if(!is.null(amplicons)) {
+  if(!is.null(ampliconNames)) {
     #add the amplicon names as rownames
-    rownames(bamDataRangesNorm) = amplicons
+    rownames(bamDataRangesNorm) = ampliconNames
   }
   #get the count information for one sample
-  #add small value to prevent a zero read count
-  normalizedSamples = bamDataRangesNorm[, which(classes == "samples")] + 0.00001
-  normalizedReference = bamDataRangesNorm[, which(classes == "reference")] +  0.00001
+  tinyValueToAvoidZeroReadCounts <- 0.00001
+  normalizedSamples = bamDataRangesNorm[, which(classes == "samples")] + tinyValueToAvoidZeroReadCounts
+  normalizedReference = bamDataRangesNorm[, which(classes == "reference")] +  tinyValueToAvoidZeroReadCounts
   return(list(samples = normalizedSamples, reference = normalizedReference))
 }
-
-
-
-
-
-#get the combined counts
-#CombinedNormalizedCounts <- function(sampleCounts, referenceCounts, gr, amplicons = elementMetadata(gr) ampliconNames) {
-# TODO change amplicons to ampliconNames to have same parameter with the same name as in the other functions..
-#CombinedNormalizedCounts <- function(sampleCounts, referenceCounts, gr, amplicons = elementMetadata(gr)["ampliconNames"]) {
-#combine call samples and reference
-#    allCounts = cbind(sampleCounts, referenceCounts)
-#    classes = rep(c("samples", "reference"), c(ncol(sampleCounts), ncol(referenceCounts)))
-#normalize all samples
-#    bamDataRangesNorm = as.matrix((normalizeGenome(allCounts, normType = "median")))
-#    if(!is.null(amplicons)) {
-#        #add the amplicon names as rownames
-#        rownames(bamDataRangesNorm) = amplicons
-#    }
-#get the count information for one sample
-#add one tp revent a zero read count
-#    normalizedSamples = bamDataRangesNorm[, which(classes == "samples")] + 0.00001
-#    normalizedReference = bamDataRangesNorm[, which(classes == "reference")] +  0.00001
-#    return(list(samples = normalizedSamples, reference = normalizedReference))
-#}
-
-# #save the normalized and unnormalized tables as an excel file
-# saveReadCountTable <- function(countTable,file) {
-#   
-#   
-#   write.csv(countTable,file = file)
-#   
-#   
-# }
-
-
-
 
 ##################################################################################
 # helper functions
@@ -234,7 +145,7 @@ PercentAboveValue <- function(vector, value) {
 }
 
 #how many numbers in a vector are below a given cutoff
-PercentBelowValue <- function(vector,value) {
+PercentBelowValue <- function(vector, value) {
   sum(vector < value)/length(vector)
 }
 
@@ -300,8 +211,6 @@ WriteListToXLSX <- function(listOfDataFrames, filepath = "list.xlsx") {
 ReadXLSXToList <- function(filepath) {
   inputList <- list(reference = unfactorize(read.xlsx(filepath, header = FALSE, sheetName = "reference")),
                     sample = unfactorize(read.xlsx(filepath, header = FALSE, sheetName = "sample")))
-  #  names(inputList) <- c("reference", "sample")
-  #  inputList[] <- lapply(inputList, as.character)
   return(inputList)
 }
 
@@ -318,10 +227,6 @@ unfactorize <- function(df){
   return(df)
 }
 
-
-# 
-# 
-# 
 ##################################################################################
 # functions for bootstrapping
 ##################################################################################
@@ -436,35 +341,14 @@ CheckSignificance <- function(bootList) {
   sigTables =  foreach(i = seq_along(bootList)) %:%
     foreach(j = 1:ncol(bootList[[i]]),.combine = rbind) %do% {
       quantiles = quantile(bootList[[i]][,j],c(0.05, 0.5, 0.95))
-#      significant = (quantiles[1] > 1) | (quantiles[3] < 1)
-#      c(quantiles,significant)
-      roundedQuantiles <- round(quantiles, digits=2)
-      roundedSignificant = (roundedQuantiles[1] > 1) | (roundedQuantiles[3] < 1)
+      roundedQuantiles <- round(quantiles, digits = 2)
+      maybeAmplification <- roundedQuantiles[1] > 1
+      maybeDeletion <- roundedQuantiles[3] < 1
+      roundedSignificant <- maybeAmplification | maybeDeletion
       c(roundedQuantiles, roundedSignificant)
     }
-
   return(sigTables)
 }
-
-#sigTablesTest = foreach(j = 1:ncol(bootListTest),.combine = rbind) %do% {
-#  quantiles = quantile(bootListTest[,j],c(0.05, 0.5, 0.95))
-#  significant = (quantiles[1] > 1) | (quantiles[3] < 1)
-#  bananas = quantiles[3]
-#  c(quantiles,significant, bananas)
-#}
-
-# To check the quantiles result..
-#quantiles <- quantile(bootList[[1]][, "STK11"],c(0.05, 0.5, 0.95))
-#quantiles2 <- quantile(bootList2[[1]][, "STK11"],c(0.05, 0.5, 0.95))
-
-#significant = (quantiles[1] > 1) | (quantiles[3] < 1)
-#significant2 = (quantiles2[1] > 1) | (quantiles2[3] < 1)
-
-
-quantiles <- quantile(bootList[[1]][, "STK11"],c(0.05, 0.5, 0.95))
-quantiles2 <- quantile(bootList2[[1]][, "STK11"],c(0.05, 0.5, 0.95))
-
-
 
 SignificantGenes <- function(sigList, genesPositionsIndex) {
   # TODO package check complains
@@ -532,15 +416,14 @@ round_df <- function(x, digits) {
   x
 }
 
-ReportTables <- function(bootList,
-                         geneNames,
-                         backgroundNoise,
+ReportTables <- function(geneNames,
+                         samplesNormalizedReadCounts,
                          referenceNormalizedReadCounts,
-                         samplesNormalizedReadCounts) {
-  
+                         bootList,
+                         backgroundNoise) {
+
   # get the background noise in a format that can be used for a report table
   backgroundReport <- BackgroundReport(backgroundNoise, geneNames)
-  
   
   # gene index
   genesPositionsIndex <- IndexGenesPositions(geneNames)
@@ -567,19 +450,6 @@ ReportTables <- function(bootList,
     up <- apply(bootList[[i]], 2, PercentAboveValue, value = 1.5)
     down <- apply(bootList[[i]], 2, PercentBelowValue, value = 0.5)
 
-    #     data.frame(medianRatio = ratioMatGene[, i],
-    #                up = up,
-    #                down = down,
-    #                fivePercentQuantile = sigList[[i]][, 1],
-    #                fiftyPercentQuantile = sigList[[i]][, 2],
-    #                ninetyFivePercentQuantile = sigList[[i]][, 3],
-    #                fivePercentNoise = backgroundReport[[i]][, 1],
-    #                ninetyfivePercentNoise = backgroundReport[[i]][, 2],
-    #                significant = isSig,
-    #                aboveNoise = aboveNoise,
-    #                amplNum = table(geneNames),
-    #                passed = isSig + aboveNoise)
-
     dfTemp <- data.frame(medianRatio = ratioMatGene[, i],
                          up = up,
                          down = down,
@@ -596,20 +466,6 @@ ReportTables <- function(bootList,
     significativeNumbers <- 2
 
     dfTemp <- round_df(dfTemp, significativeNumbers)
-
-    #     names(dfTemp) <- c("MedRat",
-    #                       "Up",
-    #                       "Down",
-    #                       "5%Qte",
-    #                       "50%Qte",
-    #                       "95%Qte",
-    #                       "5%Nse",
-    #                       "95%Nse",
-    #                       "Signif.",
-    #                       "AbvNse",
-    #                       "ANum",
-    #                       "Psd")
-
 
     names(dfTemp) <- c("MedianRatio",
                        "Up",
@@ -665,16 +521,6 @@ MultiRemSigGenes <- function(sigList,genesPos) {
   return(genePosNonSig)
 }
 
-# #extract the postions from a ratios vector that belong to specified genes
-# getGeneAmpl <- function(ratios,genes_pos) {
-#   
-#   posVector = unlist(genesPos)
-#   posRatios = ratios[posVector]
-#   
-#   return(posRatios)
-#   
-# }
-
 AmplProb <- function(genesPos) {
   #how many amplicons where used for each ofhte genes
   geneCounts = elementLengths(genesPos)
@@ -695,7 +541,6 @@ AmplProb <- function(genesPos) {
 #     return(amplWeights)
 # }
 
-
 RatioMat <- function(sampleMat, refMedian) {
   division <- function(a,b) {
     return(a/b)
@@ -703,7 +548,6 @@ RatioMat <- function(sampleMat, refMedian) {
   ratioMatrix = apply(sampleMat, 2, division, b =refMedian)
   return(ratioMatrix)
 }
-
 
 SampleRatio <- function(ratios, numAmpl, amplWeights = NULL) {
   randomPos = sample(seq_along(ratios),numAmpl,prob = amplWeights)
@@ -720,7 +564,6 @@ SampleNoiseGenes <- function(numAmpl = 2, ratios, replicates = 100, specificityL
   distributionQuantiles = c(median(sampleNoiseDistribution) - specificityLevel * sd(sampleNoiseDistribution), median(sampleNoiseDistribution) + specificityLevel * sd(sampleNoiseDistribution))
   return(distributionQuantiles)
 }
-
 
 #how many unique amplicon numbers are there
 NumberOfUniqueAmplicons <- function(genesPos) {
@@ -743,7 +586,6 @@ IterateAmplNum <- function(uniqueAmpliconNumbers, ratios, replicates = 100, spec
   return(noiseResults)
 }
 
-
 # #check function not sure what it does
 # #multiIterateAmplNum <- function(unique_ampliconNumbers, genePosNonSig, ratioMatrix, replicates = 100, probs = NULL) {
 #   
@@ -759,8 +601,8 @@ IterateAmplNum <- function(uniqueAmpliconNumbers, ratios, replicates = 100, spec
 # #   return(backgroundObject)
 #    
 # #}
-# 
-# 
+#
+#
 # #######################################################################################
 # ## functions for report generation
 # #######################################################################################
@@ -837,18 +679,13 @@ IterateAmplNum <- function(uniqueAmpliconNumbers, ratios, replicates = 100, spec
 # }
 
 PlotBootstrapDistributions <- function(bootList, reportTables, outputFolder = getwd(), sampleNames = NULL, save = FALSE,scale = 7) {
-  
   i <- NULL
   plotList <- foreach(i = seq_along(bootList)) %do% {
-    #for (i in seq_along(bootList)) {
     selSample <- i
     test <- as.factor(reportTables[[selSample]][, "Passed"])
     test <- revalue(test, c(`0` = "noChange", `1` = "nonReliableChange", `2` = "ReliableChange"))
-    
-    
     ratios <- NULL
     testsPassed <- NULL
-    
     df <- data.frame(class = as.factor(colnames(bootList[[selSample]])), ratios = (as.vector(t(bootList[[selSample]]))), 
                      testsPassed = test)
     
@@ -902,57 +739,3 @@ PlotBootstrapDistributions <- function(bootList, reportTables, outputFolder = ge
   return(plotList)
   
 }
-
-#
-# PlotBootstrapDistributions <- function(bootList, reportTables, outputFolder) {
-#   print("BEGIN of PlotBootstrapDistributions")
-#   # TODO Needed because of package check complaints..
-#   i <- NULL
-#   for(i in seq_along(bootList)) {
-#     print("inside cycle")
-#     selSample = i
-#     test = as.factor(reportTables[[selSample]][, "passed"])
-#     test = revalue(test,c("0" = "noChange","1" =  "significantChange","2" = "aboveNoise"))
-#     
-#     # Package check complaints...
-#     #        ratios <- NULL
-#     #        testsPassed <- NULL
-#     
-#     df = data.frame(class = as.factor(colnames(bootList[[selSample]])), ratios = (as.vector(t(bootList[[selSample]]))), testsPassed = test)
-#     
-#     print("STEP 0")
-#     
-#     filename <- names(bootList[selSample])
-#     
-#     print("STEP 0.5")
-#     #        print(df)
-#     #        test =  ggplot(df)
-#     # test = qplot(Sepal.Length, Petal.Length, data = iris, color = Species)
-#     print("STEP 0.6")
-#     test =  ggplot(df, aes(x=class, y=log(ratios), fill=testsPassed)) +
-#       geom_boxplot() + 
-#       ggtitle(filename) +
-#       theme(plot.title = element_text(lineheight=.8, face="bold"), text = element_text(size=15), axis.text.x = element_text(angle=90, vjust=1))
-#
-#     #     test + ggtitle(filename)
-#     
-#     print("STEP 1")
-#     print(outputFolder)
-#     print(filename)
-#     print("STEP 1.1")
-#     dir.create(outputFolder, recursive = TRUE, showWarnings = FALSE)
-#     
-#     filepath = paste0(outputFolder, "/",filename, "_plot.pdf")
-#     print(paste0("filepath : ", filepath))
-#     
-#     print("STEP 2")
-#     
-#     #     ggsave(filename = paste0(i,"_plot.pdf"),plot = test,height = 7.42 * 1,width = 8.11 * 2,limitsize = FALSE)
-#     ggsave(filename=filepath, plot=test, height=7.42 * 1, width=8.11 * 2, limitsize=FALSE)
-#     
-#     print("STEP 3")
-#     
-#   }
-#   print("END of PlotBootstrapDistributions")
-# }
-#

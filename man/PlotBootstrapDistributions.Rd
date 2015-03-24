@@ -13,7 +13,8 @@ PlotBootstrapDistributions(bootList,
                            reportTables,
                            outputFolder = getwd(),
                            sampleNames = NULL,
-                           save = FALSE)
+                           save = FALSE,
+                           scale = 7)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -32,6 +33,9 @@ PlotBootstrapDistributions(bootList,
   \item{save}{
     Boolean to save the plots to the output folder
   }
+  \item{scale}{
+    Numeric scale factor
+  }
 }
 
 \author{
@@ -49,12 +53,13 @@ ampliconNames <- NULL
 
 normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
                                                  referenceReadCounts,
-                                                 amplicons = ampliconNames)
+                                                 ampliconNames = ampliconNames)
 
 # After normalization data sets need to be splitted again to perform bootstrap
 samplesNormalizedReadCounts = normalizedReadCounts["samples"][[1]]
 referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
 
+# Should be used values above 10000
 replicates <- 10
 
 # Perform the bootstrap based analysis
@@ -67,13 +72,13 @@ backgroundNoise <- Background(geneNames,
            samplesNormalizedReadCounts,
            referenceNormalizedReadCounts,
            bootList,
-           replicates = 1000)
+           replicates = replicates)
 
-reportTables <- ReportTables(bootList,
-             geneNames,
-             backgroundNoise,
+reportTables <- ReportTables(geneNames,
+             samplesNormalizedReadCounts,
              referenceNormalizedReadCounts,
-             samplesNormalizedReadCounts)
+             bootList,
+             backgroundNoise)
 
 PlotBootstrapDistributions(bootList, reportTables, save = FALSE)
 }

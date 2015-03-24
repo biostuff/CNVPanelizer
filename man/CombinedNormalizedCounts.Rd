@@ -8,7 +8,7 @@
   to the same median read count.
 }
 \usage{
-CombinedNormalizedCounts(sampleCounts, referenceCounts, amplicons = NULL)
+CombinedNormalizedCounts(sampleCounts, referenceCounts, ampliconNames = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -18,7 +18,7 @@ CombinedNormalizedCounts(sampleCounts, referenceCounts, amplicons = NULL)
     \item{referenceCounts}{
       Matrix with reference read counts (rows: amplicons, columns: samples)
     }
-    \item{amplicons}{
+    \item{ampliconNames}{
       A vector with the amplicon names used for the reference and sample matrices
   }
 }
@@ -41,13 +41,6 @@ A list object with
 data(sampleReadCounts)
 data(referenceReadCounts)
 
-## Gene names should be same size as row columns
-geneNames <- row.names(referenceReadCounts)
-ampliconNames <- NULL
-
-
 normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
-                                                 referenceReadCounts,
-                                                 amplicons = ampliconNames)
+                                                 referenceReadCounts)
 }
-
