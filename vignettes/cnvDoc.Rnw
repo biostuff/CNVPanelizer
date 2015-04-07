@@ -285,8 +285,8 @@ reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, ]
     Amplicons & Number of Amplicons associated with the gene \\ \hline
     Passed & if both  Signif. and AboveNoise are TRUE then 2, if only one is TRUE then 1 and if both are FALSE then 0 \\ \hline
     \end{tabular}
-  \label{table:reportTableColumnDescription}
   \caption{Report table Column Description}
+  \label{table:reportTableColumnDescription}
     \end{table}
 
 \end{landscape}
@@ -340,7 +340,7 @@ PlotBootstrapDistributions(bootList, reportTables)
 
 \begin{landscape}
 
-<<BootstrapPlot, echo=FALSE, fig.align='center', fig.cap='Plot for a single Test sample', out.width='0.7\\linewidth', fig.height=4, fig.width='\\linewidth'>>=
+<<BootstrapPlot, echo=FALSE, fig.align='center', fig.cap='Plot for a single Test sample', fig.height=4, fig.width=10>>=
 #PlotBootstrapDistributions(bootList, reportTables, outputDirectory)[[sampleIndexToShow]]
 sampleIndexToShow <- 4
 PlotBootstrapDistributions(bootList, reportTables)[[sampleIndexToShow]]
@@ -396,10 +396,7 @@ PlotBootstrapDistributions(bootList, reportTables)[[sampleIndexToShow]]
 %     \end{tabular}
 % \end{center}
 
-
 \end{landscape}
-
-
 
 
 %\begin{figure}[H]

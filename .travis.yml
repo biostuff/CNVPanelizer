@@ -54,4 +54,4 @@ sudo: required
 env:
   - global:
     - _R_CHECK_FORCE_SUGGESTS_=false
-  
+    - LD_LIBRARY_PATH=/usr/lib/jvm/java-7-oracle/lib/amd64:/usr/lib/jvm/java-7-oracle/jre/lib/amd64/server

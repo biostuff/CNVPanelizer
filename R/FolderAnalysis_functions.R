@@ -717,7 +717,7 @@ PlotBootstrapDistributions <- function(bootList, reportTables, outputFolder = ge
     test <- ggplot(df, aes(x = class, y = log(ratios), fill = testsPassed)) + geom_boxplot() + ggtitle(filename) + 
       theme(plot.title = element_text(lineheight = 0.8, face = "bold"), text = element_text(size = 15), 
             axis.text.x = element_text(angle = 90)) + scale_fill_manual(name = "CNV Reliability", values = c("#56B4E9", "#CC79A7" ,"#D55E00")
-                                                                        , labels = c("0" = "Foo", "1" = "Bar")) + coord_cartesian(ylim = ylim1) + theme(axis.text=element_text(size=20),axis.title=element_text(size=20,face="bold")) + 
+                                                                        , labels = c("0" = "Foo", "1" = "Bar")) + coord_cartesian(ylim = ylim1) + theme(axis.text=element_text(size=10),axis.title=element_text(size=20,face="bold")) + 
       scale_x_discrete("Gene Names") + geom_hline(yintercept=log(1.5), color="#009E73") + geom_hline(yintercept=log(0.5), color="#009E73") + geom_hline(yintercept=0, color="#009E73") 
     
     if(save == TRUE) {
