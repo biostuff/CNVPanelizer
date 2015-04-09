@@ -1,80 +1,9 @@
-# TODO find out what is the difference between imports and depends at the DESCRIPTION file
 import(foreach, plyr, cn.mops, Rsamtools, exomeCopy, matrixStats, xlsx, ggplot2)
-
-#import(foreach, plyr, cn.mops, Rsamtools, exomeCopy, IRanges, matrixStats, ggplot2)
-#importFrom(xlsx, write.xlsx)
-#importFrom(xlsx, read.xlsx)
-
-## FROM The DESCRIPTION file..
-
-#Depends:
-#    R (>= 3.1.0),
-#    IRanges,
-#    matrixStats,
-#    foreach,
-#    plyr,
-#    cn.mops,
-#    Rsamtools,
-#    exomeCopy,
-#    xlsx
-#Suggests:
-#    RUnit,
-#    BiocGenerics
-#Imports:
-#    ggplot2
-#License: GPL
-
-
-
-
-
-
-# exportPattern("^[[:alpha:]]+")
-# Am just exporting the functions that I want to avoid having to write documentation..
-
-# Maybe it should be removed..
-# To keep public
-export(Background)    # is this to keep?
+export(Background)
 export(ReportTables)
 export(BedToGenomicRanges)
 export(ReadCountsFromBam)
 export(BootList)
 export(PlotBootstrapDistributions)
 export(CombinedNormalizedCounts)
-
-# TODO MAKE IT PRIVATE...
-#export(BackgroundReport)
-#export(IndexMultipleBams)
-#export(SignificantGenes)
-#export(WriteReadCountsToXLSX)
 export(WriteListToXLSX)
-#export(ReadXLSXToList)
-#export(GenerateSynthetic)
-
-
-# TODO: uncomment after creating the missing documentation
-#export(IndexGenesPositions)          
-#export(PercentBelowValue)
-#export(PercentAboveValue)
-#export(BootstrapPositions)
-#export(GeneMedianRatioMatrix)
-#export(GenePositionMedian)
-#export(SubsamplingPositions)
-#export(PositionMedian)
-#export(RatioMatrix)
-#export(ReferenceWeights)
-
-
-
-
-
-
-
-#export(NonSignificantGeneIndex)
-#export(AmplProbMultipeSamples)
-#export(RemSigGenes)  
-#export(MultiRemSigGenes)
-#export(SampleRatio)
-#export(SampleNoiseGenes)
-#export(NumberOfUniqueAmplicons)
-#export(IterateAmplNum)

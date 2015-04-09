@@ -5,7 +5,7 @@ Version: 0.99.0
 Date: 2014-11-11
 Author: Cristiano Oliveira and Thomas Wolf, with contributions from Volker and Nicole
 Maintainer: Cristiano Oliveira <cristiano.oliveira@med.uni-heidelberg.de>
-Description: A method that allows for the use of a collection of non-matched normal tissue samples. Our approach uses a non-parametric bootstrap subsampling of the available reference samples, to estimate the distribution of read counts from targeted sequencing. As inspired by random forest, this is combined with a procedure that subsamples the amplicons associated with each of the targeted genes. The obtained information allows us to reliably classify the copy number aberrations on the gene level.
+Description: A method that allows for the use of a collection of non-matched normal tissue samples. Our approach uses a non-parametric bootstrap subsampling of the available reference samples to estimate the distribution of read counts from targeted sequencing. As inspired by random forest, this is combined with a procedure that subsamples the amplicons associated with each of the targeted genes. The obtained information allows us to reliably classify the copy number aberrations on the gene level.
 Depends:
     R (>= 3.1.0),
     exomeCopy,
