@@ -199,7 +199,7 @@ WriteListToXLSX <- function(listOfDataFrames, filepath = "list.xlsx") {
   write.xlsx(listOfDataFrames[[index]],
              filepath,
              sheetName = dataFrameNames[index])
-  for(i in (sizeOfList - 1)) {
+  for(i in seq(sizeOfList - 1)) {
     index <- i + 1
     write.xlsx(listOfDataFrames[[index]],
                filepath,               
