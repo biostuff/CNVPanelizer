@@ -1,15 +1,15 @@
-library(plyr)
-library(cn.mops)
-library(foreach)
-library(matrixStats)
-library(Rsamtools)
-library(exomeCopy)
-library(xlsx)
-library(ggplot2)
+#library(plyr)
+#library(cn.mops)
+#library(foreach)
+#library(matrixStats)
+#library(Rsamtools)
+#library(exomeCopy)
+#library(xlsx)
+#library(ggplot2)
 
-##################################################################################
+###############################################################################
 # functions to read the read counts
-##################################################################################
+###############################################################################
  
 # SampleNameFromBam <-function(bamFileNames) {
 #     sampleNames = foreach(i = seq_along(bamFileNames),.combine = c) %do% {
@@ -46,91 +46,109 @@ BedToGenomicRanges <- function(panelBedFilepath, ampliconColumn, split = ";") {
   #    elementMetadata(gr) ampliconNames = paste(seqnames(gr), start(gr), end(gr), sep = "_", amplicons)
 
   elementMetadata(gr)["geneNames"] = genes
-  elementMetadata(gr)["ampliconNames"] = paste(seqnames(gr), start(gr), end(gr), sep = "_", amplicons)
+  elementMetadata(gr)["ampliconNames"] = paste(seqnames(gr),
+                                               start(gr),
+                                               end(gr),
+                                               sep = "_",
+                                               amplicons)
 
   return(gr)
 }
 
 #load the files you want to analyze
-ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames = elementMetadata(gr)$ampliconNames, removeDup = FALSE) {
+ReadCountsFromBam <- function(bamFilenames,
+                              sampleNames,
+                              gr,
+                              ampliconNames = elementMetadata(gr)$ampliconNames,
+                              removeDup = FALSE) {
 #ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames = elementMetadata(gr)["ampliconNames"], removeDup = FALSE) {
   # TODO Because of package check complaints
   i <- NULL
   curbam = foreach(i = seq_along(bamFilenames), .combine = cbind) %do% {
-    countBamInGRanges(bamFilenames[i], gr, remove.dup = removeDup, min.mapq = 20, get.width = TRUE)
+    countBamInGRanges(bamFilenames[i],
+                      gr,
+                      remove.dup = removeDup,
+                      min.mapq = 20,
+                      get.width = TRUE)
   }
   colnames(curbam) = sampleNames
   rownames(curbam) = ampliconNames
   return(curbam)
 }
 
-# functions to generate synthetic data
-GenerateSynthetic <- function(numberOfSamples,
-                              numberOfGenes,
-                              amplCount,
-                              status = NULL,
-                              cnvProb = 1/10,
-                              label = "Sample",
-                              lambdaNor = 1000,
-                              lambdaAmp = 1.5 * lambdaNor,
-                              lambdaDel = 1/1.5 * lambdaNor,
-                              rdist = rpois,
-                              varyCoverage =TRUE,
-                              seed = 123) {
-  set.seed(seed)
-  if(varyCoverage) {
-    coverageVariability = sample(1:10,numberOfSamples,replace = TRUE)
-  } else{
-    coverageVariability = rep(1,numberOfSamples)
-  }
-
-  #how many amplicons for each sample
-  #minAmpl = 1
-  #maxAmpl = 10
-  #seqAmpl = minAmpl:maxAmpl
-  #amplCount = sample(seqAmpl,numberOfGenes,replace = TRUE,prob = 1/seqAmpl)
-  
-  # TO avoid complaints from "R CMD check" ..
-  i <- NULL
-  j <- NULL
-
-  samples = foreach(i = 1:numberOfSamples, .combine=cbind) %:%
-    foreach(j = 1:numberOfGenes, .combine = c) %do% {
-      if(is.null(status)) {
-        lambda = sample(c(coverageVariability[i] * lambdaDel, coverageVariability[i] * lambdaNor, coverageVariability[i] * lambdaAmp), 1, prob = c(cnvProb, 1, cnvProb))
-      } else {
-        lambda =  status[[i]][j] * lambdaNor * coverageVariability[i]
-      }
-      rdist(amplCount[j],lambda)
-    }
-
-  colnames(samples) = paste0(label, "_", 1:numberOfSamples)
-  geneNames = paste0("Gene_", rep(1:numberOfGenes, amplCount))
-  rownames(samples) = geneNames
-  return(samples)
-}
+# # functions to generate synthetic data
+# GenerateSynthetic <- function(numberOfSamples,
+#                               numberOfGenes,
+#                               amplCount,
+#                               status = NULL,
+#                               cnvProb = 1/10,
+#                               label = "Sample",
+#                               lambdaNor = 1000,
+#                               lambdaAmp = 1.5 * lambdaNor,
+#                               lambdaDel = 1/1.5 * lambdaNor,
+#                               rdist = rpois,
+#                               varyCoverage =TRUE,
+#                               seed = 123) {
+#   set.seed(seed)
+#   if(varyCoverage) {
+#     coverageVariability = sample(1:10,numberOfSamples,replace = TRUE)
+#   } else{
+#     coverageVariability = rep(1,numberOfSamples)
+#   }
+# 
+#   #how many amplicons for each sample
+#   #minAmpl = 1
+#   #maxAmpl = 10
+#   #seqAmpl = minAmpl:maxAmpl
+#   #amplCount = sample(seqAmpl,numberOfGenes,replace = TRUE,prob = 1/seqAmpl)
+#   
+#   # To avoid complaints from "R CMD check" ..
+#   i <- NULL
+#   j <- NULL
+# 
+#   samples = foreach(i = 1:numberOfSamples, .combine=cbind) %:%
+#     foreach(j = 1:numberOfGenes, .combine = c) %do% {
+#       if(is.null(status)) {
+#         lambda = sample(c(coverageVariability[i] * lambdaDel, coverageVariability[i] * lambdaNor, coverageVariability[i] * lambdaAmp), 1, prob = c(cnvProb, 1, cnvProb))
+#       } else {
+#         lambda =  status[[i]][j] * lambdaNor * coverageVariability[i]
+#       }
+#       rdist(amplCount[j],lambda)
+#     }
+# 
+#   colnames(samples) = paste0(label, "_", 1:numberOfSamples)
+#   geneNames = paste0("Gene_", rep(1:numberOfGenes, amplCount))
+#   rownames(samples) = geneNames
+#   return(samples)
+# }
 
 #get the combined counts
-CombinedNormalizedCounts <- function(sampleCounts, referenceCounts, ampliconNames = NULL) {
+CombinedNormalizedCounts <- function(sampleCounts,
+                                     referenceCounts,
+                                     ampliconNames = NULL) {
   #combine call samples and reference
   allCounts = cbind(sampleCounts, referenceCounts)
-  classes = rep(c("samples", "reference"), c(ncol(sampleCounts), ncol(referenceCounts)))
+  classes = rep(c("samples", "reference"),
+                c(ncol(sampleCounts), ncol(referenceCounts)))
   #normalize all samples
-  bamDataRangesNorm = as.matrix((normalizeGenome(allCounts, normType = "median")))
+  bamDataRangesNorm = as.matrix((normalizeGenome(allCounts,
+                                                 normType = "median")))
   if(!is.null(ampliconNames)) {
     #add the amplicon names as rownames
     rownames(bamDataRangesNorm) = ampliconNames
   }
   #get the count information for one sample
   tinyValueToAvoidZeroReadCounts <- 0.00001
-  normalizedSamples = bamDataRangesNorm[, which(classes == "samples")] + tinyValueToAvoidZeroReadCounts
-  normalizedReference = bamDataRangesNorm[, which(classes == "reference")] +  tinyValueToAvoidZeroReadCounts
+  samplesNorm <- bamDataRangesNorm[, which(classes == "samples")]
+  normalizedSamples =  samplesNorm + tinyValueToAvoidZeroReadCounts
+  referenceNorm <- bamDataRangesNorm[, which(classes == "reference")]
+  normalizedReference =  referenceNorm + tinyValueToAvoidZeroReadCounts
   return(list(samples = normalizedSamples, reference = normalizedReference))
 }
 
-##################################################################################
+###############################################################################
 # helper functions
-##################################################################################
+###############################################################################
 
 #get the positions for each gene as a list
 IndexGenesPositions = function(genes) {
@@ -150,9 +168,15 @@ PercentBelowValue <- function(vector, value) {
 }
 
 #index the bam files if there is no index yet
-IndexMultipleBams <- function(bams, multicore = FALSE, ncores = 2, index_type = ".bam.bai") {
+IndexMultipleBams <- function(bams,
+                              multicore = FALSE,
+                              ncores = 2,
+                              index_type = ".bam.bai") {
   #check if the index already exists and need to be indexed
-  potentialBaiFilenames <- gsub(".bam", bams, replacement = index_type, ignore.case = TRUE)
+  potentialBaiFilenames <- gsub(".bam",
+                                bams,
+                                replacement = index_type,
+                                ignore.case = TRUE)
   bamsToBeIndexed <- bams[!sapply(potentialBaiFilenames, file.exists)]
   if(length(bamsToBeIndexed) > 0) {
     #index the bams
@@ -182,7 +206,9 @@ IndexMultipleBams <- function(bams, multicore = FALSE, ncores = 2, index_type = 
 # #WriteXLS("writeList", filepath, AdjWidth = TRUE, BoldHeaderRow = TRUE, row.names = TRUE, col.names = TRUE)
 # }
 
-WriteReadCountsToXLSX <- function(sampleReadCounts, referenceReadCounts, filepath = "readCounts.xls") {
+WriteReadCountsToXLSX <- function(sampleReadCounts,
+                                  referenceReadCounts,
+                                  filepath = "readCounts.xls") {
   write.xlsx(sampleReadCounts,
              filepath,
              sheetName = "sampleReadCounts")
@@ -209,8 +235,12 @@ WriteListToXLSX <- function(listOfDataFrames, filepath = "list.xlsx") {
 }
 
 ReadXLSXToList <- function(filepath) {
-  inputList <- list(reference = unfactorize(read.xlsx(filepath, header = FALSE, sheetName = "reference")),
-                    sample = unfactorize(read.xlsx(filepath, header = FALSE, sheetName = "sample")))
+  inputList <- list(reference = unfactorize(read.xlsx(filepath,
+                                                      header = FALSE,
+                                                      sheetName = "reference")),
+                      sample = unfactorize(read.xlsx(filepath,
+                                                   header = FALSE,
+                                                   sheetName = "sample")))
   return(inputList)
 }
 
@@ -223,7 +253,7 @@ ReadXLSXToList <- function(filepath) {
 # }
 #   
 unfactorize <- function(df){
-  for(i in which(sapply(df, class) == "factor")) df[[i]] = as.character(df[[i]])
+  for(i in which(sapply(df, class) == "factor")) df[[i]]=as.character(df[[i]])
   return(df)
 }
 
@@ -250,14 +280,6 @@ GenePositionMedian <- function(genesPos, vector) {
   medians = sapply(genesPos, PositionMedian, vector = vector)
   names(medians) = names(genesPos)
   return(medians)
-}
-
-RatioMatrix <- function(sampleMat, refMedian) {
-  division <- function(a, b) {
-    return(a/b)
-  }
-  ratioMatrix = apply(sampleMat, 2, division, b = refMedian)
-  return(ratioMatrix)
 }
 
 #calculates the median from a vector given specific positions for a matrix
@@ -293,7 +315,8 @@ BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
   
   i <- NULL
   j <- NULL
-  bootListSamples <- foreach(i = iterator) %:% foreach(j = rep(1, replicates), .combine = rbind) %dopar% {
+  bootListSamples <- foreach(i = iterator) %:%
+    foreach(j = rep(1, replicates), .combine = rbind) %dopar% {
     # a vector and matrix are not the same and for a vector iterating over the column makes no sense so we have
     # to chekc if a mtrix or a vector was passed.
     if (class(sampleMatrix) == "matrix") {
@@ -313,7 +336,8 @@ BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
     
     
     # given the obtained sampling using the bootstraps calulated above
-    bootRatio <- testSample[geneBootPos]/rowMedians(refmat[geneBootPos, sampleBootPos])
+    refMatPos <- refmat[geneBootPos, sampleBootPos]
+    bootRatio <- testSample[geneBootPos]/rowMedians(refMatPos)
     
     
     # after the bootstrapping the gene positions in the vector changes so recalculate them
@@ -381,7 +405,12 @@ AmplProbMultipeSamples <- function(genePosNonSig) {
   return(amplWeights)
 }
 
-Background <- function(geneNames, samplesNormalizedReadCounts, referenceNormalizedReadCounts, bootList, specificityLevel = 1.75, replicates = 1000) {
+Background <- function(geneNames,
+                       samplesNormalizedReadCounts,
+                       referenceNormalizedReadCounts,
+                       bootList,
+                       specificityLevel = 1.75,
+                       replicates = 1000) {
 
   #which genes showed significant changes
   sigList <- CheckSignificance(bootList)
@@ -391,7 +420,7 @@ Background <- function(geneNames, samplesNormalizedReadCounts, referenceNormaliz
   #refMedian <- apply(referenceNormalizedReadCounts, 1, median)
   refMedian <- rowMedians(referenceNormalizedReadCounts)
   # calculate the ratio matrix for each sample
-  ratioMatrix <- RatioMat(samplesNormalizedReadCounts, refMedian)
+  ratioMatrix <- RatioMatrix(samplesNormalizedReadCounts, refMedian)
   # remove the significant genes from the noise estimation
   genesPosNonSig <- NonSignificantGeneIndex(sigList, genesPositionsIndex)
   # calculate the weight for each amplicon of significant genes
@@ -400,7 +429,10 @@ Background <- function(geneNames, samplesNormalizedReadCounts, referenceNormaliz
   
   i <- NULL
   backgroundObject <- foreach(i = seq_along(genesPosNonSig)) %dopar% {
-    IterateAmplNum(uniqueAmpliconNumbers, ratioMatrix[unlist(genesPosNonSig[[i]]), i], replicates = replicates, specificityLevel,
+    IterateAmplNum(uniqueAmpliconNumbers,
+                   ratioMatrix[unlist(genesPosNonSig[[i]]), i],
+                   replicates = replicates,
+                   specificityLevel,
                    probs = amplWeights[[i]])
   }
   return(backgroundObject)
@@ -433,7 +465,7 @@ ReportTables <- function(geneNames,
   refMedian <- rowMedians(referenceNormalizedReadCounts)
   
   # calculate the ratio matrix for each sample
-  ratioMatrix <- RatioMat(samplesNormalizedReadCounts, refMedian)
+  ratioMatrix <- RatioMatrix(samplesNormalizedReadCounts, refMedian)
   
   # calculate the genewise ratio matrix from the ratio_mat
   ratioMatGene <- GeneMedianRatioMatrix(genesPositionsIndex, ratioMatrix)
@@ -541,7 +573,7 @@ AmplProb <- function(genesPos) {
 #     return(amplWeights)
 # }
 
-RatioMat <- function(sampleMat, refMedian) {
+RatioMatrix <- function(sampleMat, refMedian) {
   division <- function(a,b) {
     return(a/b)
   }
@@ -556,12 +588,23 @@ SampleRatio <- function(ratios, numAmpl, amplWeights = NULL) {
   return(randomMedian)
 }
 
-SampleNoiseGenes <- function(numAmpl = 2, ratios, replicates = 100, specificityLevel = 1.75, probs = NULL) {
+SampleNoiseGenes <- function(numAmpl = 2,
+                             ratios,
+                             replicates = 100,
+                             specificityLevel = 1.75,
+                             probs = NULL) {
   #now repeat the sampling for the selected number of amplicons replicates times
-  sampleNoiseDistribution = replicate(replicates, SampleRatio(ratios, numAmpl, amplWeights = probs))
+  sampleNoiseDistribution = replicate(replicates,
+                                      SampleRatio(ratios,
+                                                  numAmpl,
+                                                  amplWeights = probs))
   #get the 5 and 95 percent quantiles of this noise distribution    
   #distributionQuantiles = quantile(sampleNoiseDistribution,c(0.05,0.95))
-  distributionQuantiles = c(median(sampleNoiseDistribution) - specificityLevel * sd(sampleNoiseDistribution), median(sampleNoiseDistribution) + specificityLevel * sd(sampleNoiseDistribution))
+  medianNoise <- median(sampleNoiseDistribution)
+  sdNoise <- sd(sampleNoiseDistribution)
+  firstQuantile <- medianNoise - specificityLevel * sdNoise
+  lastQuantile <- medianNoise + specificityLevel * sdNoise
+  distributionQuantiles = c(firstQuantile, lastQuantile)
   return(distributionQuantiles)
 }
 
@@ -574,11 +617,19 @@ NumberOfUniqueAmplicons <- function(genesPos) {
 }
 
 #now calculate the background for each of the unique amplicon numbers
-IterateAmplNum <- function(uniqueAmpliconNumbers, ratios, replicates = 100, specificityLevel, probs = NULL) {
+IterateAmplNum <- function(uniqueAmpliconNumbers,
+                           ratios,
+                           replicates = 100,
+                           specificityLevel,
+                           probs = NULL) {
   # TODO Needed because of package check complaints..
   i <- NULL
   noiseResults =  foreach(i = seq_along(uniqueAmpliconNumbers)) %do% { 
-    sampledNoise = SampleNoiseGenes(uniqueAmpliconNumbers[i], ratios = ratios,replicates = replicates, probs = probs, specificityLevel = specificityLevel)
+    sampledNoise = SampleNoiseGenes(uniqueAmpliconNumbers[i],
+                                    ratios = ratios,
+                                    replicates = replicates,
+                                    probs = probs,
+                                    specificityLevel = specificityLevel)
     names(sampledNoise) = c("5%","95%")  
     sampledNoise
   }
@@ -678,15 +729,23 @@ IterateAmplNum <- function(uniqueAmpliconNumbers, ratios, replicates = 100, spec
 #   return(rank(geneOrderer))  
 # }
 
-PlotBootstrapDistributions <- function(bootList, reportTables, outputFolder = getwd(), sampleNames = NULL, save = FALSE,scale = 7) {
+PlotBootstrapDistributions <- function(bootList,
+                                       reportTables,
+                                       outputFolder = getwd(),
+                                       sampleNames = NULL,
+                                       save = FALSE,
+                                       scale = 7) {
   i <- NULL
   plotList <- foreach(i = seq_along(bootList)) %do% {
     selSample <- i
     test <- as.factor(reportTables[[selSample]][, "Passed"])
-    test <- revalue(test, c(`0` = "noChange", `1` = "nonReliableChange", `2` = "ReliableChange"))
+    test <- revalue(test, c(`0` = "noChange",
+                            `1` = "nonReliableChange",
+                            `2` = "ReliableChange"))
     ratios <- NULL
     testsPassed <- NULL
-    df <- data.frame(class = as.factor(colnames(bootList[[selSample]])), ratios = (as.vector(t(bootList[[selSample]]))), 
+    df <- data.frame(class = as.factor(colnames(bootList[[selSample]])),
+                     ratios = (as.vector(t(bootList[[selSample]]))), 
                      testsPassed = test)
     
     
@@ -695,47 +754,43 @@ PlotBootstrapDistributions <- function(bootList, reportTables, outputFolder = ge
     # newGeneOrder <- bedToGeneOrder(gr)
     # df$class = with(df,factor(class,levels(class)[newGeneOrder]))
     #}
-    
-    
+
     ylim1 <- boxplot.stats((df$ratios))$stats[c(1, 5)]
     ylim1 <- c(max(ylim1),max(ylim1))
     ylim1 <- log(ylim1)
     ylim1 <- ylim1 * c(-scale,scale)
     
     if(is.null(sampleNames)) {
-      
       filename <- names(bootList[selSample])
-      
-    }else{
-      
-      filename <- sampleNames[selSample]
-      
-    } 
-    
-    
-    
-    test <- ggplot(df, aes(x = class, y = log(ratios), fill = testsPassed)) + geom_boxplot() + ggtitle(filename) + 
-      theme(plot.title = element_text(lineheight = 0.8, face = "bold"), text = element_text(size = 15), 
-            axis.text.x = element_text(angle = 90)) + scale_fill_manual(name = "CNV Reliability", values = c("#56B4E9", "#CC79A7" ,"#D55E00")
-                                                                        , labels = c("0" = "Foo", "1" = "Bar")) + coord_cartesian(ylim = ylim1) + theme(axis.text=element_text(size=10),axis.title=element_text(size=20,face="bold")) + 
-      scale_x_discrete("Gene Names") + geom_hline(yintercept=log(1.5), color="#009E73") + geom_hline(yintercept=log(0.5), color="#009E73") + geom_hline(yintercept=0, color="#009E73") 
+    } else {
+      filename <- sampleNames[selSample] 
+    }
+    test <- ggplot(df, aes(x = class, y = log(ratios), fill = testsPassed)) +
+      geom_boxplot() + ggtitle(filename) + 
+      theme(plot.title = element_text(lineheight = 0.8, face = "bold"),
+            text = element_text(size = 15), 
+            axis.text.x = element_text(angle = 90)) +
+      scale_fill_manual(name = "CNV Reliability",
+                        values = c("#56B4E9", "#CC79A7" ,"#D55E00"),
+                        labels = c("0" = "Foo", "1" = "Bar")) +
+      coord_cartesian(ylim = ylim1) +
+      theme(axis.text=element_text(size=10),
+            axis.title=element_text(size=20,face="bold")) + 
+      scale_x_discrete("Gene Names") +
+      geom_hline(yintercept=log(1.5), color="#009E73") +
+      geom_hline(yintercept=log(0.5), color="#009E73") +
+      geom_hline(yintercept=0, color="#009E73") 
     
     if(save == TRUE) {
-      
       dir.create(outputFolder, recursive = TRUE, showWarnings = FALSE)
-      
-      
       filepath <- paste0(outputFolder, "/", filename, "_plot.pdf")
-      
-      
-      ggsave(filename = filepath, plot = test, height = 7.42 * 1, width = 8.11 * 2, limitsize = FALSE)
-      
+      ggsave(filename = filepath,
+             plot = test,
+             height = 7.42 * 1,
+             width = 8.11 * 2,
+             limitsize = FALSE)
     }
-    
     return(test)
-    
   }
-  
   return(plotList)
-  
 }
