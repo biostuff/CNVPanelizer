@@ -4,9 +4,10 @@
   CheckSignificance
 }
 \description{
-  This function compares the ratio between the median reference and the samples of interest
-  against the bootstrap subsampling distribution generated for each gene.
-  Based on the 95 percent confidence interval the significance of a CNV aberration being present is being decided.
+    This function compares the ratio between the median reference and
+    the samples of interest, against the bootstrap subsampling distribution
+    generated for each gene. Based on the 95 percent confidence interval the
+    significance of a CNV aberration being present is being decided.
 }
 \usage{
 CheckSignificance(bootList)
@@ -21,7 +22,7 @@ CheckSignificance(bootList)
 \value{
 
 A list of report matrices. One entry for each entry of the bootList parameter.
-Each matrix contains the 5 percent quantile, the 95 percent quantile and logical 
+Each matrix contains the 5 percent quantile, the 95 percent quantile and logical
 information about the significance status.
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
@@ -29,7 +30,7 @@ information about the significance status.
 }
 
 \author{
-  Thomas Wolf, Cristiano Oliveira
+    Thomas Wolf, Cristiano Oliveira
 }
 
 
@@ -37,9 +38,7 @@ information about the significance status.
 \examples{
 
 \dontrun{
-
-CheckSignificance(bootList)
-
+    CheckSignificance(bootList)
 }
 }
 

@@ -1,7 +1,9 @@
 test.bootList <- function() {
     kNumberOfReferenceMatrixLines <- 4
     kNumberOfReferenceMatrixColumns <- 4
-    referenceValuesReadCounts <- 1:(kNumberOfReferenceMatrixLines * kNumberOfReferenceMatrixColumns)
+    kNumberOfElements <- kNumberOfReferenceMatrixLines * 
+                        kNumberOfReferenceMatrixColumns
+    referenceValuesReadCounts <- 1:kNumberOfElements
     # Reference read counts matrix
     referenceReadCounts <- matrix(referenceValuesReadCounts,
                               nrow = kNumberOfReferenceMatrixLines,
@@ -13,9 +15,10 @@ test.bootList <- function() {
     sampleReadCounts <- matrix(1:kNumberOfReferenceMatrixLines)
     
 #    colnames(referenceReadCounts) <- paste0("ref",1:kNumberOfReferenceMatrixColumns)
-#     rownames(referenceReadCounts) <- paste0("c:/somefile", 1:kNumberOfReferenceMatrixLines, ".bam")
-#     colnames(sampleReadCounts) <- paste0("c:/somefile", 1:kNumberOfReferenceMatrixLines, ".bam")
-    
+#     rownames(referenceReadCounts) <- paste0("c:/somefile",
+#                                       1:kNumberOfReferenceMatrixLines, ".bam")
+#     colnames(sampleReadCounts) <- paste0("c:/somefile",
+#                                        1:kNumberOfReferenceMatrixLines, ".bam")
 
     colnames(sampleReadCounts) <- paste0("c:/somefile", 1, ".bam")
     
@@ -39,7 +42,8 @@ test.bootList <- function() {
     checkEquals(resultForGENE1, 0.1428571, tolerance = tolerance)
     checkEquals(resultForGENE2, 0.3666667, tolerance = tolerance)
   
-#     # This values has small differents if you do the ratio of the means or vice versa..
+#     # This values has small differents if you do the
+#   ratio of the means or vice versa..
 #     expectedResult <- list(data.frame("GENE1" = 0.1428571, "GENE2" = 0.3666667))
 # 
 #   
@@ -55,8 +59,6 @@ test.bootList <- function() {
 # #     checkEquals(bootList, expectedResult)
 #     checkEquals(1, 1)
 }
-
-
 
 test.examples <- function() {
   checkEquals(1, 1)

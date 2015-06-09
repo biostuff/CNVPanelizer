@@ -4,8 +4,10 @@
   BootList
 }
 \description{
-    Performs a hybrid bootstrapping subsampling procedure similar to random forest.
-    A distribution of sample/reference ratios for each gene and sample of interest combination.
+    Performs a hybrid bootstrapping subsampling
+    procedure similar to random forest.
+    A distribution of sample/reference ratios for
+    each gene and sample of interest combination.
 
 }
 \usage{
@@ -41,11 +43,7 @@ BootList(geneNames, sampleMatrix, refmat, replicates)
   Thomas Wolf, Cristiano Oliveira
 }
 
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
 \examples{
-%% TODO create some
 
 \dontshow{
 }

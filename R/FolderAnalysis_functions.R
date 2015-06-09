@@ -23,7 +23,8 @@
 #   return(sampleNames)
 # }
 #
-# bamFileNames = "Z:\\Projekt Results\\Copy Numer Analysis\\ReferenceBam\\LCPv1\\E-2014-01020_1PG-94_IonXpress_019_rawlib.bam"
+# bamFileNames = "Z:\\Projekt Results\\Copy Numer Analysis\\ReferenceBam\\
+#LCPv1\\E-2014-01020_1PG-94_IonXpress_019_rawlib.bam"
 # SampleNameFromBam(bamFileNames)
 
 BedToGenomicRanges <- function(panelBedFilepath, ampliconColumn, split = ";") {
@@ -41,17 +42,13 @@ BedToGenomicRanges <- function(panelBedFilepath, ampliconColumn, split = ";") {
   }
 
   genes = unlist(genes)
-  # missing the dollar symbol before text because of groovy..
-  #    elementMetadata(gr) geneNames = genes
-  #    elementMetadata(gr) ampliconNames = paste(seqnames(gr), start(gr), end(gr), sep = "_", amplicons)
-
+  # missing the dollar symbol before text because of groovy script
   elementMetadata(gr)["geneNames"] = genes
   elementMetadata(gr)["ampliconNames"] = paste(seqnames(gr),
                                                start(gr),
                                                end(gr),
                                                sep = "_",
                                                amplicons)
-
   return(gr)
 }
 
@@ -59,9 +56,13 @@ BedToGenomicRanges <- function(panelBedFilepath, ampliconColumn, split = ";") {
 ReadCountsFromBam <- function(bamFilenames,
                               sampleNames,
                               gr,
-                              ampliconNames = elementMetadata(gr)$ampliconNames,
+                              ampliconNames,
                               removeDup = FALSE) {
-#ReadCountsFromBam <- function(bamFilenames, sampleNames, gr, ampliconNames = elementMetadata(gr)["ampliconNames"], removeDup = FALSE) {
+
+  if (missing(ampliconNames)) {
+    ampliconNames = elementMetadata(gr)$ampliconNames
+  }
+
   # TODO Because of package check complaints
   i <- NULL
   curbam = foreach(i = seq_along(bamFilenames), .combine = cbind) %do% {
@@ -109,7 +110,11 @@ ReadCountsFromBam <- function(bamFilenames,
 #   samples = foreach(i = 1:numberOfSamples, .combine=cbind) %:%
 #     foreach(j = 1:numberOfGenes, .combine = c) %do% {
 #       if(is.null(status)) {
-#         lambda = sample(c(coverageVariability[i] * lambdaDel, coverageVariability[i] * lambdaNor, coverageVariability[i] * lambdaAmp), 1, prob = c(cnvProb, 1, cnvProb))
+#          lambda = sample(c(coverageVariability[i] * lambdaDel,
+#                            coverageVariability[i] * lambdaNor,
+#                            coverageVariability[i] * lambdaAmp),
+#                          1,
+#                          prob = c(cnvProb, 1, cnvProb))
 #       } else {
 #         lambda =  status[[i]][j] * lambdaNor * coverageVariability[i]
 #       }
@@ -167,6 +172,7 @@ PercentBelowValue <- function(vector, value) {
   sum(vector < value)/length(vector)
 }
 
+# TODO check this params with Thomas
 #index the bam files if there is no index yet
 IndexMultipleBams <- function(bams,
                               multicore = FALSE,
@@ -181,30 +187,14 @@ IndexMultipleBams <- function(bams,
   if(length(bamsToBeIndexed) > 0) {
     #index the bams
     if(multicore) {
-      mclapply(bamsToBeIndexed, indexBam, mc.cores = ncores)
+      # TODO check with Thomas if we can replace by this..
+      bplapply(bamsToBeIndexed, indexBam)
+      #mclapply(bamsToBeIndexed, indexBam, mc.cores = ncores)
     } else {
       lapply(bamsToBeIndexed, indexBam)
     }
   }
 }
-
-# # extension of filepath determines if the format will be excel 2003 (.xls) or excel 2007 (.xlsx)
-# WriteReadCountsToXLS <- function(sampleReadCounts, referenceReadCounts, filepath = "readCounts.xls") {
-#   # writeCounts <- function(sampleReadCounts,referenceReadCounts,file = "") {
-#   
-#   writeSampleReadCounts <- as.data.frame(sampleReadCounts)
-#   #rownames(writeSampleReadCounts) <- paste0(seq_along(ampliconNames), "_",ampliconNames)
-#   
-#   writeReferenceReadCounts <- as.data.frame(referenceReadCounts)
-#   
-#   writeList <- list(SampleReadCounts = writeSampleReadCounts, referenceReadCounts = writeReferenceReadCounts)
-# 
-# #  WriteXLS("writeList", paste0(outputFolder, file), AdjWidth = TRUE, BoldHeaderRow = TRUE, row.names = TRUE, col.names = TRUE)
-# 
-# #  WriteXLS("writeList", filepath, AdjWidth = TRUE, BoldHeaderRow = TRUE, row.names = TRUE, col.names = TRUE)
-# WriteXLS("writeReferenceReadCounts", filepath, AdjWidth = TRUE, col.names = TRUE)
-# #WriteXLS("writeList", filepath, AdjWidth = TRUE, BoldHeaderRow = TRUE, row.names = TRUE, col.names = TRUE)
-# }
 
 WriteReadCountsToXLSX <- function(sampleReadCounts,
                                   referenceReadCounts,
@@ -257,15 +247,15 @@ unfactorize <- function(df){
   return(df)
 }
 
-##################################################################################
+###############################################################################
 # functions for bootstrapping
-##################################################################################
-#a function that randomly samples positions from a vector using the bootstrap principle
+###############################################################################
+#a function that randomly samples positions from a vector using bootstrap
 #BootstrapPositions <-  function(pos) {
 #    return(sample(pos, length(pos), replace = TRUE))
 #}
 
-#a function that randomly samples positions from a vector using the subsampling principle
+#a function that randomly samples positions from a vector using subsampling
 SubsamplingPositions <- function(pos, mtry = round(sqrt(length(pos)))) {
   return(sample(pos, mtry, replace = FALSE))
 }
@@ -298,15 +288,18 @@ ReferenceWeights <- function(refmat, varianceFunction = IQR) {
   return(weights)
 }
 
-# #split into a function generating the bootstrap distribution #and a function averaging over amplicons.
-# define the function to generate bootstrap distributions and return a list with the genewise bootstrapping
+# split into a function generating the bootstrap distribution 
+# and a function averaging over amplicons.
+# define the function to generate bootstrap distributions and
+# return a list with the genewise bootstrapping
 BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
-  
   # get the genes positions in the matrix as a list from a gene name vector
   genesPos <- IndexGenesPositions(geneNames)
   
-  # a vector and matrix are not the same and for a vector iterating over the column makes no sense so we have
-  # to check if a mtrix or a vector was passed. ncol only works for matrix not for vector
+  # a vector and matrix are not the same and for a vector iterating over
+  # the column makes no sense so we have
+  # to check if a mtrix or a vector was passed. ncol only works for matrix
+  # not for vector
   if (class(sampleMatrix) == "matrix") {
     iterator <- 1:ncol(sampleMatrix)
   } else {
@@ -317,30 +310,30 @@ BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
   j <- NULL
   bootListSamples <- foreach(i = iterator) %:%
     foreach(j = rep(1, replicates), .combine = rbind) %dopar% {
-    # a vector and matrix are not the same and for a vector iterating over the column makes no sense so we have
-    # to chekc if a mtrix or a vector was passed.
+    # a vector and matrix are not the same and for a vector 
+    # iterating over the column makes no sense so we have to check
+    # if a mtrix or a vector was passed.
     if (class(sampleMatrix) == "matrix") {
       testSample <- sampleMatrix[, i]
     } else {
       testSample <- sampleMatrix
     }
-    
-    
+
     # for each gene subsample the amplicon positions independently
-    
+
     # sample the samples using bootstrapping
     sampleBootPos <- sample(1:ncol(refmat), ncol(refmat), replace = TRUE)
-    
-    
+
     geneBootPos <- c(lapply(genesPos, SubsamplingPositions), recursive = TRUE)
-    
-    
+
+
     # given the obtained sampling using the bootstraps calulated above
     refMatPos <- refmat[geneBootPos, sampleBootPos]
     bootRatio <- testSample[geneBootPos]/rowMedians(refMatPos)
-    
-    
-    # after the bootstrapping the gene positions in the vector changes so recalculate them
+
+
+    # after the bootstrapping the gene positions in the vector changes
+    # so recalculate them
     adjustedLength <- function(a) {
       round(sqrt(length(a)))
     }
@@ -383,9 +376,9 @@ SignificantGenes <- function(sigList, genesPositionsIndex) {
   return(sigGenes)
 }
 
-# ##################################################################################
+# #############################################################################
 # # functions for background noise estimation
-# ##################################################################################
+# #############################################################################
 NonSignificantGeneIndex <- function(sigList, genesPositionsIndex) {
   # TODO package check complains
   i <- NULL
@@ -477,7 +470,8 @@ ReportTables <- function(geneNames,
     isSig <- (sigList[[i]][, 3] < 1) | (sigList[[i]][, 1] > 1)
     backgroundUp <- 1 * (backgroundReport[[i]][, 2] - 1)
     backgroundDown <- 1 * (1 - backgroundReport[[i]][, 1])
-    aboveNoise <- (ratioMatGene[, i] > 1 & (ratioMatGene[, i] - 1) > backgroundUp) |
+    rMatGene <- ratioMatGene[, i]
+    aboveNoise <- (rMatGene > 1 & (rMatGene - 1) > backgroundUp) |
       (ratioMatGene[, i] < 1 & (1 - ratioMatGene[, i]) > backgroundDown)
     up <- apply(bootList[[i]], 2, PercentAboveValue, value = 1.5)
     down <- apply(bootList[[i]], 2, PercentBelowValue, value = 0.5)
@@ -530,7 +524,8 @@ BackgroundReport <- function(background, geneNames) {
 
 #remove genes that were considered significant by the algorithm
 RemSigGenes <- function(genesPos, sigGenes) {
-  #if some of the genes were reported with a significantly different read count the should not be used for
+  #if some of the genes were reported with a significantly different read count
+  #should not be used for
   #background testing
   #which genes are in the genes pos object
   geneNames= names(genesPos)
@@ -593,7 +588,7 @@ SampleNoiseGenes <- function(numAmpl = 2,
                              replicates = 100,
                              specificityLevel = 1.75,
                              probs = NULL) {
-  #now repeat the sampling for the selected number of amplicons replicates times
+  #now repeat the sampling for the selected number of amplicons replicates
   sampleNoiseDistribution = replicate(replicates,
                                       SampleRatio(ratios,
                                                   numAmpl,
@@ -638,25 +633,24 @@ IterateAmplNum <- function(uniqueAmpliconNumbers,
 }
 
 # #check function not sure what it does
-# #multiIterateAmplNum <- function(unique_ampliconNumbers, genePosNonSig, ratioMatrix, replicates = 100, probs = NULL) {
-#   
-#   
-# #   backgroundObject = foreach(i = seq_along(genePosNonSig)) %do% {
-#     
-#     
-# #     IterateAmplNum(uniqueAmpliconNumbers, ratioMatrix[unlist(genePosNonSig[[i]]), i], replicates = replicates, probs = probs[[i]])
-#     
-#     
-# #   }
-#  
-# #   return(backgroundObject)
-#    
-# #}
+# multiIterateAmplNum <- function(unique_ampliconNumbers,
+#                                 genePosNonSig,
+#                                 ratioMatrix,
+#                                 replicates = 100,
+#                                 probs = NULL) {
+#     backgroundObject = foreach(i = seq_along(genePosNonSig)) %do% {
+#          IterateAmplNum(uniqueAmpliconNumbers,
+#                         ratioMatrix[unlist(genePosNonSig[[i]]), i],
+#                         replicates = replicates,
+#                         probs = probs[[i]])
+#     }
+#     return(backgroundObject)
+# }
 #
 #
-# #######################################################################################
+# #############################################################################
 # ## functions for report generation
-# #######################################################################################
+# #############################################################################
 # SelectNoiseInfo <- function(amplNum,noiseResults) {
 #     noise =  foreach(i = seq_along,.combine = rbind) %do% {
 #         noiseResults[[as.character(amplNum[i])]] 
@@ -665,7 +659,12 @@ IterateAmplNum <- function(uniqueAmpliconNumbers,
 # }
 # 
 # #define a function to generate the results tables
-# getResultTables <- function(bootListSamples,genesPos,samplemat,refmat,reps,genes){
+# getResultTables <- function(bootListSamples,
+#                             genesPos,
+#                             samplemat,
+#                             refmat,
+#                             reps,
+#                             genes){
 #   
 #   
 #   resultTables =  foreach(i = seq_along(bootListSamples)) %dopar% {
@@ -695,22 +694,31 @@ IterateAmplNum <- function(uniqueAmpliconNumbers,
 #     
 #     
 #     
-#     isSigBoot = (bootNinetyFive < 1 & bootMedian  < 1) | (bootFive > 1 & bootMedian > 1)
-#     isSigSampling = (diffSigResult[,"5%"] > bootMedian & bootMedian  < 1) | (diffSigResult[,"95%"] < bootMedian & bootMedian > 1)
+#     isSigBoot = (bootNinetyFive < 1 & bootMedian  < 1) |
+#                   (bootFive > 1 & bootMedian > 1)
+#      isSigSampling = (diffSigResult[,"5%"] > bootMedian & bootMedian  < 1) |
+#                      (diffSigResult[,"95%"] < bootMedian & bootMedian > 1)
 #     
-#     isSig = isSigBoot & isSigSampling & (bootMedian < 0.75 | bootMedian > 1.25)
+#     isSig = isSigBoot &
+#               isSigSampling &
+#               (bootMedian < 0.75 | bootMedian > 1.25)
 #     
-#     cbind(bootFive,bootNinetyFive,bootMedian,diffSigResult,isSig,table(genes)) 
+#     cbind(bootFive,
+#             bootNinetyFive,
+#             bootMedian,
+#             diffSigResult,
+#             isSig,
+#             table(genes))
 #     
 #   }
 #   
 # }
 # 
 # 
-# ####################################################################################################################################
+# #############################################################################
 # ## Visualize the results
 # NOT BEING USED AT THIS POINT .. MAYBE IN FUTURE..
-# ####################################################################################################################################
+# #############################################################################
 # bedToGeneOrder <- function(gr) {
 #   
 #   geneNames <- gr$geneNames

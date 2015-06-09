@@ -1,25 +1,38 @@
 Package: CNVPanelizer
 Type: Package
 Title: Reliable CNV detection in targeted sequencing applications
-Version: 0.99.0
+Version: 0.99.2
 Date: 2014-11-11
-Author: Cristiano Oliveira and Thomas Wolf, with contributions from Volker and Nicole
+Author: Cristiano Oliveira and Thomas Wolf
+    with contributions from Volker and Nicole
 Maintainer: Cristiano Oliveira <cristiano.oliveira@med.uni-heidelberg.de>
-Description: A method that allows for the use of a collection of non-matched normal tissue samples. Our approach uses a non-parametric bootstrap subsampling of the available reference samples to estimate the distribution of read counts from targeted sequencing. As inspired by random forest, this is combined with a procedure that subsamples the amplicons associated with each of the targeted genes. The obtained information allows us to reliably classify the copy number aberrations on the gene level.
+Description: A method that allows for the use of a collection of non-matched
+    normal tissue samples. Our approach uses a non-parametric bootstrap
+    subsampling of the available reference samples to estimate the distribution
+    of read counts from targeted sequencing. As inspired by random forest, this
+    is combined with a procedure that subsamples the amplicons associated with 
+    each of the targeted genes. The obtained information allows us to reliably 
+    classify the copy number aberrations on the gene level.
 Depends:
-    R (>= 3.1.0),
-    exomeCopy,
-    matrixStats,
-    cn.mops,
-    ggplot2,
-    foreach
+    R (>= 3.2.0),
+    cn.mops
 Suggests:
+    knitr,
     RUnit,
     BiocGenerics
 Imports:
-    plyr,
+    BiocParallel,
+    GenomicRanges,
+    IRanges,
     Rsamtools,
+    exomeCopy,
+    foreach,
+    ggplot2,
+    matrixStats,
+    plyr,
     xlsx
-License: GPL
+License: GPL-3
 LazyData: false
-biocViews: Classification
+biocViews: Classification, Sequencing, Normalization, CopyNumberVariation
+VignetteBuilder: knitr
+

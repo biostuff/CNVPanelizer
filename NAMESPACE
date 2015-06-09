@@ -1,4 +1,18 @@
-import(foreach, plyr, cn.mops, Rsamtools, exomeCopy, matrixStats, xlsx, ggplot2)
+import(foreach,
+        cn.mops,
+        Rsamtools,
+        exomeCopy,
+        matrixStats,
+        xlsx,
+        ggplot2)
+importFrom(plyr, revalue)
+importFrom(IRanges, IRanges)
+importFrom(IRanges, elementLengths)
+importFrom(GenomicRanges,
+            GRanges,
+            elementMetadata,
+            "elementMetadata<-", "seqnames")
+importFrom(BiocParallel, bplapply)
 export(Background)
 export(ReportTables)
 export(BedToGenomicRanges)

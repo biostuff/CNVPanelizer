@@ -1,12 +1,11 @@
 \name{ReportTables}
 \alias{ReportTables}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
   ReportTables
 }
 \description{
-  This function generates the final report of the copy number detection procedure.
-  One data frame is generated for each sample of interest.
+    This function generates the final report of the CNV detection procedure.
+    One data frame is generated for each sample of interest.
 }
 \usage{
 
@@ -16,23 +15,22 @@ ReportTables(geneNames,
              bootList,
              backgroundNoise)
 }
-%% TODO create some argument list
 \arguments{
-  \item{geneNames}{
-     Describe \code{geneNames} here
-}
-  \item{samplesNormalizedReadCounts}{
-     Describe \code{samplesNormalizedReadCounts} here
-}
-  \item{referenceNormalizedReadCounts}{
-     Describe \code{referenceNormalizedReadCounts} here
-}
-  \item{bootList}{
-     A list as returned by the  \code{BootList} function
-}
-  \item{backgroundNoise}{
-     A list of background noise as  returned by  the \code{Background} function.
-}
+    \item{geneNames}{
+        Describe \code{geneNames} here
+    }
+    \item{samplesNormalizedReadCounts}{
+        Describe \code{samplesNormalizedReadCounts} here
+    }
+    \item{referenceNormalizedReadCounts}{
+        Describe \code{referenceNormalizedReadCounts} here
+    }
+    \item{bootList}{
+        A list as returned by the  \code{BootList} function
+    }
+    \item{backgroundNoise}{
+        A list of background noise as returned by the \code{Background} function
+    }
 }
 
 \value{
@@ -45,14 +43,7 @@ ReportTables(geneNames,
   Thomas Wolf, Cristiano Oliveira
 }
 
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
 \examples{
-
-%\dontshow{
-%}
-
 
 data(sampleReadCounts)
 data(referenceReadCounts)
@@ -90,3 +81,4 @@ ReportTables(geneNames,
              bootList,
              backgroundNoise)
 }
+

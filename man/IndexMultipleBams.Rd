@@ -4,7 +4,7 @@
   IndexMultipleBams
 }
 \description{
-  Index a list of bam files if there is no index yet for the entries in the list.
+    Index a list of bam files if there is no index for the entries in the list.
 }
 \usage{
 IndexMultipleBams(bams, multicore = FALSE, ncores = 2, index_type = ".bam.bai")
@@ -24,22 +24,17 @@ IndexMultipleBams(bams, multicore = FALSE, ncores = 2, index_type = ".bam.bai")
   }
 }
 
+\value{
+Not returning any value
+}
+
 \author{
   Thomas Wolf, Cristiano Oliveira
 }
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
 \examples{
-
-\dontrun{
-
-files = c("file1.bam","file2.bam","file3.bam")
-
-IndexMultipleBams(bams = files)
-
-}
-
-
-
+  \dontrun{
+    files = c("file1.bam","file2.bam","file3.bam")
+    IndexMultipleBams(bams = files)
+  }
 }

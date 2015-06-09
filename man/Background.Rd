@@ -4,7 +4,8 @@
   Background
 }
 \description{
-  Estimates the dependence of background noise on the number of amplicons sequenced for each gene.
+    Estimates the dependence of background noise on the number of amplicons
+    sequenced for each gene.
 }
 \usage{
 Background(geneNames,
@@ -37,15 +38,14 @@ Background(geneNames,
 
 \value{
  Returns a list of data frames. One data frame for each sample of interest.
- Thr data frames report the background noise for each number of gene associated amplicons
+ The data frames report the background noise for each number of gene
+ associated amplicons
  being sequenced.
 }
 
 \author{
   Cristiano Oliveira, Thomas Wolf
 }
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \examples{
 
@@ -80,8 +80,8 @@ Background(geneNames,
            specificityLevel = 1.75,
            replicates = replicates)
 
-%\dontrun{
-%}
+\dontrun{
+}
 
 }
 

@@ -4,8 +4,9 @@
   PlotBootstrapDistributions
 }
 \description{
-  Plots the generated bootstrap distribution as boxplots. Genes showing a significant copy number aberration
-  are marked in a different color.
+    Plots the generated bootstrap distribution as boxplots.
+    Genes showing a significant copy number aberration
+    are marked in a different color.
 }
 \usage{
 
@@ -36,6 +37,10 @@ PlotBootstrapDistributions(bootList,
   \item{scale}{
     Numeric scale factor
   }
+}
+
+\value{
+A list with plots
 }
 
 \author{
