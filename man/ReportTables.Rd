@@ -29,7 +29,8 @@ ReportTables(geneNames,
         A list as returned by the  \code{BootList} function
     }
     \item{backgroundNoise}{
-        A list of background noise as returned by the \code{Background} function
+        A list of background noise as returned by the
+        \code{Background} function
     }
 }
 
@@ -75,10 +76,9 @@ backgroundNoise = Background(geneNames,
                              bootList,
                              replicates = replicates)
 
-ReportTables(geneNames,
+reportTables <- ReportTables(geneNames,
              samplesNormalizedReadCounts,
              referenceNormalizedReadCounts,
              bootList,
              backgroundNoise)
 }
-

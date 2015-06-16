@@ -32,7 +32,7 @@
     \dontshow{
       TRUE
     }
-    \dontrun{
+    \donttest{
         WriteListToXLSX(listOfDataFrames = exampleList, filepath = "list.xlsx")
     }
 }

@@ -31,44 +31,5 @@ License: \tab GPL-3\cr
 \author{
 Thomas Wolf <t.wolf@dkfz.de>\cr
 Cristiano Oliveira <cristiano.oliveira@med.uni-heidelberg.de>\cr
-
-}
-\references{
-TODO
-
-%@Book{abramowitz+stegun,
-% author    = "Milton {Abramowitz} and Irene A. {Stegun}",
-% title     = "Handbook of Mathematical Functions with
-%              Formulas, Graphs, and Mathematical Tables",
-% publisher = "Dover",
-% year      =  1964,
-% address   = "New York",
-% edition   = "ninth Dover printing, tenth GPO printing"
-%}
-
-
-
-
-%---
-%title: "CNVPanelizer"
-%output: html_document
-%bibliography: bibliography.bib
-%---
-
-
- %@article{lin1973,
-%    author  = {Shen Lin and Brian W. Kernighan},
-%    title   = {An Effective Heuristic Algorithm
-%    for the Travelling-Salesman Problem},
-%    journal = {Operations Research},
-%    volume  = {21},
-%    year    = {1973},
-%    pages   = {498--516},
-% }
-
 }
 \keyword{ R, Random Forest, CNV, Bootstraping, Panel Sequencing, Ion Torrent }
-\seealso{
-TODO
-%~~ Optional links to other man pages, e.g. ~~
-}

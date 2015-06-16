@@ -34,7 +34,7 @@
 
 % this needs to be after the usepackage otherwise
 % the references do no show at the end ?!?!
-\addbibresource{bmc_article2.bib} % Specifying the packages.bib file 
+\addbibresource{CNVPanelizer.bib} % Specifying the packages.bib file 
 
 \title{CNVPanelizer: Reliable CNV detection in target sequencing app.}
 
@@ -270,8 +270,10 @@ subsampling pool.
 Each amplicon is weighted according to the number of amplicons the respective
 gene has $w_A = \frac{1}{|A_g|}$. Thus the probablity of sampling from a gene
 is the same regardless of the number amplicons. For each number of amplicons
-a background noise distribution is estimated. The background reported is
-defined by $5\%$ and the $95\%$ of the respective distribution. For each unique
+a background noise distribution is estimated. The reported background  is
+defined by the lower noise  $medianNoise - sensitivityConstant * 
+standardDeviationNoise$ and the upper noise $medianNoise + sensitivityConstant
+* standardDeviationNoise$ of the respective distribution. For each unique
 number of amplicons per gene we run a sampling based approach to estimate the
 background noise after normalization.
 
@@ -345,10 +347,8 @@ reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, ]
     above|below 1.5 \\ \hline
     5\% | 50\% | 95\% Quantile & The quantiles of the bootstrap
     distribution\\ \hline
-    5\% | 95\% Noise & The quantiles of the background noise.
-    Background noise is the distribution of median ratios between
-    reference and sample of interest, when no significant change
-    is present. \\ \hline
+    Lower | Median | Upper Background Noise bound & The Median and the
+    Lower/Upper background noise bounds. \\ \hline
     Signif. & Boolean value representing if read counts
     differences are Significant \\ \hline
     AboveNoise & Boolean value representing if median ratio is

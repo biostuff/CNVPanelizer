@@ -3,13 +3,14 @@
 \title{
   PlotBootstrapDistributions
 }
+
 \description{
     Plots the generated bootstrap distribution as boxplots.
-    Genes showing a significant copy number aberration
+    Genes showing significant values
     are marked in a different color.
 }
-\usage{
 
+\usage{
 PlotBootstrapDistributions(bootList,
                            reportTables,
                            outputFolder = getwd(),

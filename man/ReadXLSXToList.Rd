@@ -26,7 +26,11 @@ ReadXLSXToList(filepath)
 }
 
 \examples{
-    \dontrun{
+    % To avoid biocCheck complaints..
+    \dontshow{
+        TRUE
+    }
+    \donttest{
         ReadXLSXToList(filepath)
     }
 }

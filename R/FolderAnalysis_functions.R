@@ -1,12 +1,3 @@
-#library(plyr)
-#library(cn.mops)
-#library(foreach)
-#library(matrixStats)
-#library(Rsamtools)
-#library(exomeCopy)
-#library(xlsx)
-#library(ggplot2)
-
 ###############################################################################
 # functions to read the read counts
 ###############################################################################
@@ -35,7 +26,7 @@ BedToGenomicRanges <- function(panelBedFilepath, ampliconColumn, split = ";") {
   amplicons = segments[, ampliconColumn]
   #get the genes from segments
   splitted = strsplit(amplicons, split = split)
-  # TODO Required because of package checking complaints
+  # Required because of package checking complaints
   i <- NULL
   genes = foreach(i = seq_along(splitted)) %do% {
     splitted[[i]][1]
@@ -63,7 +54,7 @@ ReadCountsFromBam <- function(bamFilenames,
     ampliconNames = elementMetadata(gr)$ampliconNames
   }
 
-  # TODO Because of package check complaints
+  # Because of package check complaints
   i <- NULL
   curbam = foreach(i = seq_along(bamFilenames), .combine = cbind) %do% {
     countBamInGRanges(bamFilenames[i],
@@ -76,56 +67,6 @@ ReadCountsFromBam <- function(bamFilenames,
   rownames(curbam) = ampliconNames
   return(curbam)
 }
-
-# # functions to generate synthetic data
-# GenerateSynthetic <- function(numberOfSamples,
-#                               numberOfGenes,
-#                               amplCount,
-#                               status = NULL,
-#                               cnvProb = 1/10,
-#                               label = "Sample",
-#                               lambdaNor = 1000,
-#                               lambdaAmp = 1.5 * lambdaNor,
-#                               lambdaDel = 1/1.5 * lambdaNor,
-#                               rdist = rpois,
-#                               varyCoverage =TRUE,
-#                               seed = 123) {
-#   set.seed(seed)
-#   if(varyCoverage) {
-#     coverageVariability = sample(1:10,numberOfSamples,replace = TRUE)
-#   } else{
-#     coverageVariability = rep(1,numberOfSamples)
-#   }
-# 
-#   #how many amplicons for each sample
-#   #minAmpl = 1
-#   #maxAmpl = 10
-#   #seqAmpl = minAmpl:maxAmpl
-#   #amplCount = sample(seqAmpl,numberOfGenes,replace = TRUE,prob = 1/seqAmpl)
-#   
-#   # To avoid complaints from "R CMD check" ..
-#   i <- NULL
-#   j <- NULL
-# 
-#   samples = foreach(i = 1:numberOfSamples, .combine=cbind) %:%
-#     foreach(j = 1:numberOfGenes, .combine = c) %do% {
-#       if(is.null(status)) {
-#          lambda = sample(c(coverageVariability[i] * lambdaDel,
-#                            coverageVariability[i] * lambdaNor,
-#                            coverageVariability[i] * lambdaAmp),
-#                          1,
-#                          prob = c(cnvProb, 1, cnvProb))
-#       } else {
-#         lambda =  status[[i]][j] * lambdaNor * coverageVariability[i]
-#       }
-#       rdist(amplCount[j],lambda)
-#     }
-# 
-#   colnames(samples) = paste0(label, "_", 1:numberOfSamples)
-#   geneNames = paste0("Gene_", rep(1:numberOfGenes, amplCount))
-#   rownames(samples) = geneNames
-#   return(samples)
-# }
 
 #get the combined counts
 CombinedNormalizedCounts <- function(sampleCounts,
@@ -172,7 +113,7 @@ PercentBelowValue <- function(vector, value) {
   sum(vector < value)/length(vector)
 }
 
-# TODO check this params with Thomas
+# check this params with Thomas
 #index the bam files if there is no index yet
 IndexMultipleBams <- function(bams,
                               multicore = FALSE,
@@ -187,7 +128,7 @@ IndexMultipleBams <- function(bams,
   if(length(bamsToBeIndexed) > 0) {
     #index the bams
     if(multicore) {
-      # TODO check with Thomas if we can replace by this..
+      # check with Thomas if we can replace by this..
       bplapply(bamsToBeIndexed, indexBam)
       #mclapply(bamsToBeIndexed, indexBam, mc.cores = ncores)
     } else {
@@ -196,17 +137,17 @@ IndexMultipleBams <- function(bams,
   }
 }
 
-WriteReadCountsToXLSX <- function(sampleReadCounts,
-                                  referenceReadCounts,
-                                  filepath = "readCounts.xls") {
-  write.xlsx(sampleReadCounts,
-             filepath,
-             sheetName = "sampleReadCounts")
-  write.xlsx(referenceReadCounts,
-             filepath,
-             sheetName = "referenceReadCounts",
-             append = TRUE)
-}
+# WriteReadCountsToXLSX <- function(sampleReadCounts,
+#                                   referenceReadCounts,
+#                                   filepath = "readCounts.xls") {
+#   write.xlsx(sampleReadCounts,
+#              filepath,
+#              sheetName = "sampleReadCounts")
+#   write.xlsx(referenceReadCounts,
+#              filepath,
+#              sheetName = "referenceReadCounts",
+#              append = TRUE)
+# }
 
 WriteListToXLSX <- function(listOfDataFrames, filepath = "list.xlsx") {
   sizeOfList <- length(listOfDataFrames)
@@ -352,7 +293,7 @@ BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
 
 #calculate significance 
 CheckSignificance <- function(bootList) {
-  # TODO package check complains
+  # package check complains
   i <- NULL
   j <- NULL
   sigTables =  foreach(i = seq_along(bootList)) %:%
@@ -368,7 +309,7 @@ CheckSignificance <- function(bootList) {
 }
 
 SignificantGenes <- function(sigList, genesPositionsIndex) {
-  # TODO package check complains
+  # package check complains
   i <- NULL
   sigGenes = foreach(i = seq_along(sigList)) %do% {
     names(genesPositionsIndex)[sigList[[i]][, 3] == 1]
@@ -380,7 +321,7 @@ SignificantGenes <- function(sigList, genesPositionsIndex) {
 # # functions for background noise estimation
 # #############################################################################
 NonSignificantGeneIndex <- function(sigList, genesPositionsIndex) {
-  # TODO package check complains
+  # package check complains
   i <- NULL
   genePosNonSig = foreach(i = seq_along(sigList)) %do% {
     sigGenes = names(genesPositionsIndex)[sigList[[i]][, 3] == 1]
@@ -390,7 +331,7 @@ NonSignificantGeneIndex <- function(sigList, genesPositionsIndex) {
 }
 
 AmplProbMultipeSamples <- function(genePosNonSig) {
-  # TODO package check complains
+  # package check complains
   i <- NULL
   amplWeights = foreach(i = seq_along(genePosNonSig)) %do% {
     AmplProb(genePosNonSig[[i]])
@@ -419,7 +360,7 @@ Background <- function(geneNames,
   # calculate the weight for each amplicon of significant genes
   amplWeights <- AmplProbMultipeSamples(genesPosNonSig)
   uniqueAmpliconNumbers <- NumberOfUniqueAmplicons(genesPositionsIndex)
-  
+
   i <- NULL
   backgroundObject <- foreach(i = seq_along(genesPosNonSig)) %dopar% {
     IterateAmplNum(uniqueAmpliconNumbers,
@@ -449,63 +390,95 @@ ReportTables <- function(geneNames,
 
   # get the background noise in a format that can be used for a report table
   backgroundReport <- BackgroundReport(backgroundNoise, geneNames)
-  
+
   # gene index
   genesPositionsIndex <- IndexGenesPositions(geneNames)
-  
+
   # calculate the reference median
   #refMedian <- apply(referenceNormalizedReadCounts, 1, median)
   refMedian <- rowMedians(referenceNormalizedReadCounts)
-  
+
   # calculate the ratio matrix for each sample
   ratioMatrix <- RatioMatrix(samplesNormalizedReadCounts, refMedian)
-  
+
   # calculate the genewise ratio matrix from the ratio_mat
   ratioMatGene <- GeneMedianRatioMatrix(genesPositionsIndex, ratioMatrix)
-  
+
   sigList <- CheckSignificance(bootList)
-  # TODO because package generaton complains..
+  # because package generaton complains..
   i <- NULL
   reportTables <- foreach(i = seq_along(backgroundReport)) %do% {
     isSig <- (sigList[[i]][, 3] < 1) | (sigList[[i]][, 1] > 1)
-    backgroundUp <- 1 * (backgroundReport[[i]][, 2] - 1)
-    backgroundDown <- 1 * (1 - backgroundReport[[i]][, 1])
+#     backgroundUp <- 1 * (backgroundReport[[i]][, 2] - 1)
+#     backgroundDown <- 1 * (1 - backgroundReport[[i]][, 1])
+    backgroundUp <- backgroundReport[[i]][, 3] - 1
+    backgroundDown <- 1 - backgroundReport[[i]][, 1]
     rMatGene <- ratioMatGene[, i]
     aboveNoise <- (rMatGene > 1 & (rMatGene - 1) > backgroundUp) |
       (ratioMatGene[, i] < 1 & (1 - ratioMatGene[, i]) > backgroundDown)
-    up <- apply(bootList[[i]], 2, PercentAboveValue, value = 1.5)
-    down <- apply(bootList[[i]], 2, PercentBelowValue, value = 0.5)
+#     up <- apply(bootList[[i]], 2, PercentAboveValue, value = 1.5)
+#     down <- apply(bootList[[i]], 2, PercentBelowValue, value = 0.5)
 
     dfTemp <- data.frame(medianRatio = ratioMatGene[, i],
-                         up = up,
-                         down = down,
+#                          up = up,
+#                          down = down,
                          fivePercentQuantile = sigList[[i]][, 1],
                          fiftyPercentQuantile = sigList[[i]][, 2],
                          ninetyFivePercentQuantile = sigList[[i]][, 3],
-                         fivePercentNoise = backgroundReport[[i]][, 1],
-                         ninetyfivePercentNoise = backgroundReport[[i]][, 2],
+#                          fivePercentNoise = backgroundReport[[i]][, 1],
+#                          ninetyfivePercentNoise = backgroundReport[[i]][, 2],
+                         lowerNoise = backgroundReport[[i]][, 1],
+                         medianNoise = backgroundReport[[i]][, 2],
+                         upperNoise = backgroundReport[[i]][, 3],
                          significant = isSig,
                          aboveNoise = aboveNoise,
                          amplNum = as.vector(table(geneNames)),
                          passed = isSig + aboveNoise)
+
+# 
+# dfTemp <- data.frame(medianRatio = ratioMatGene[, i],
+#                      Up = up,
+#                      Down = down,
+#                      "5% Quantile" = sigList[[i]][, 1],
+#                      "50% Quantile" = sigList[[i]][, 2],
+#                      "95% Quantile" = sigList[[i]][, 3],
+#                      #                          fivePercentNoise = backgroundReport[[i]][, 1],
+#                      #                          ninetyfivePercentNoise = backgroundReport[[i]][, 2],
+#                      LowerBoundNoise = backgroundReport[[i]][, 1],
+#                      MedianNoise = backgroundReport[[i]][, 2],
+#                      UpperBoundNoise = backgroundReport[[i]][, 3],
+#                      Signif = isSig,
+#                      AboveNoise = aboveNoise,
+#                      Amplicons = as.vector(table(geneNames)),
+#                      Passed = isSig + aboveNoise)
+
+
+
+
+
+
+
+
+
+
 
     significativeNumbers <- 2
 
     dfTemp <- round_df(dfTemp, significativeNumbers)
 
     names(dfTemp) <- c("MedianRatio",
-                       "Up",
-                       "Down",
+#                        "Up",
+#                        "Down",
                        "5% Quantile",
                        "50% Quantile",
                        "95% Quantile",
-                       "5% Noise",
-                       "95% Noise",
+                       "LowerNoise",
+                       "MedianNoise",
+                       "UpperNoise",
                        "Signif.",
                        "AboveNoise",
                        "Amplicons",
                        "Passed")
-
     dfTemp
   }
   names(reportTables) <- seq_along(reportTables)
@@ -513,11 +486,11 @@ ReportTables <- function(geneNames,
 }
 
 BackgroundReport <- function(background, geneNames) {
-  # TODO because package generaton complains..
+  # because package generaton complains..
   i <- NULL
   j <- NULL
-  backgroundReport = foreach(i = seq_along(background)) %:% 
-    foreach(j = table(geneNames), .combine = rbind) %do% {         
+  backgroundReport = foreach(i = seq_along(background)) %:%
+    foreach(j = table(geneNames), .combine = rbind) %do% {
       background[[i]][[as.character(j)]]
     }
 }
@@ -538,15 +511,15 @@ RemSigGenes <- function(genesPos, sigGenes) {
   return(nonSigGenesPos)
 }
 
-MultiRemSigGenes <- function(sigList,genesPos) {
-  i <- NULL
-  #remove the significant genes from the noise estimation
-  genePosNonSig = foreach(i = seq_along(sigList)) %do% {
-    sigGenes = names(genesPos)[sigList[[i]][,3] == 1]
-    RemSigGenes(genesPos, sigGenes)
-  }
-  return(genePosNonSig)
-}
+# MultiRemSigGenes <- function(sigList,genesPos) {
+#   i <- NULL
+#   #remove the significant genes from the noise estimation
+#   genePosNonSig = foreach(i = seq_along(sigList)) %do% {
+#     sigGenes = names(genesPos)[sigList[[i]][,3] == 1]
+#     RemSigGenes(genesPos, sigGenes)
+#   }
+#   return(genePosNonSig)
+# }
 
 AmplProb <- function(genesPos) {
   #how many amplicons where used for each ofhte genes
@@ -568,12 +541,16 @@ AmplProb <- function(genesPos) {
 #     return(amplWeights)
 # }
 
+# RatioMatrix <- function(sampleMat, refMedian) {
+#   division <- function(a,b) {
+#     return(a/b)
+#   }
+#   ratioMatrix = apply(sampleMat, 2, division, b =refMedian)
+#   return(ratioMatrix)
+# }
+
 RatioMatrix <- function(sampleMat, refMedian) {
-  division <- function(a,b) {
-    return(a/b)
-  }
-  ratioMatrix = apply(sampleMat, 2, division, b =refMedian)
-  return(ratioMatrix)
+  apply(sampleMat, 2, `/`, refMedian)
 }
 
 SampleRatio <- function(ratios, numAmpl, amplWeights = NULL) {
@@ -597,10 +574,16 @@ SampleNoiseGenes <- function(numAmpl = 2,
   #distributionQuantiles = quantile(sampleNoiseDistribution,c(0.05,0.95))
   medianNoise <- median(sampleNoiseDistribution)
   sdNoise <- sd(sampleNoiseDistribution)
-  firstQuantile <- medianNoise - specificityLevel * sdNoise
-  lastQuantile <- medianNoise + specificityLevel * sdNoise
-  distributionQuantiles = c(firstQuantile, lastQuantile)
-  return(distributionQuantiles)
+#   firstQuantile <- medianNoise - specificityLevel * sdNoise
+#   lastQuantile <- medianNoise + specificityLevel * sdNoise
+#   distributionQuantiles = c(firstQuantile, lastQuantile)
+#   return(distributionQuantiles)
+  
+  lowerBound <- medianNoise - specificityLevel * sdNoise
+  upperBound <- medianNoise + specificityLevel * sdNoise
+  sampledNoise = c(lowerBound, medianNoise, upperBound)
+  names(sampledNoise) = paste0(c("Lower", "Median", "Upper"), "Noise")
+  return(sampledNoise)
 }
 
 #how many unique amplicon numbers are there
@@ -617,7 +600,7 @@ IterateAmplNum <- function(uniqueAmpliconNumbers,
                            replicates = 100,
                            specificityLevel,
                            probs = NULL) {
-  # TODO Needed because of package check complaints..
+  # Needed because of package check complaints..
   i <- NULL
   noiseResults =  foreach(i = seq_along(uniqueAmpliconNumbers)) %do% { 
     sampledNoise = SampleNoiseGenes(uniqueAmpliconNumbers[i],
@@ -625,7 +608,7 @@ IterateAmplNum <- function(uniqueAmpliconNumbers,
                                     replicates = replicates,
                                     probs = probs,
                                     specificityLevel = specificityLevel)
-    names(sampledNoise) = c("5%","95%")  
+#    names(sampledNoise) = c("5%","95%")  
     sampledNoise
   }
   names(noiseResults) = as.character(uniqueAmpliconNumbers)    
@@ -785,8 +768,8 @@ PlotBootstrapDistributions <- function(bootList,
       theme(axis.text=element_text(size=10),
             axis.title=element_text(size=20,face="bold")) + 
       scale_x_discrete("Gene Names") +
-      geom_hline(yintercept=log(1.5), color="#009E73") +
-      geom_hline(yintercept=log(0.5), color="#009E73") +
+#       geom_hline(yintercept=log(1.5), color="#009E73") +
+#       geom_hline(yintercept=log(0.5), color="#009E73") +
       geom_hline(yintercept=0, color="#009E73") 
     
     if(save == TRUE) {

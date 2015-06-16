@@ -5,7 +5,7 @@
 }
 \description{
     This function makes use of cn.mops::normalizeChromosomes to normalize
-    the read counts of all samples and references to the same median read count.
+    the read counts of all samples and references to the same median read count
 }
 \usage{
     CombinedNormalizedCounts(sampleCounts,
@@ -26,24 +26,19 @@
 }
 
 \value{
-A list object with
-\item{comp1 }{The  normalized sample matrix/vector}
-\item{comp2 }{the median normalized read count matrix of the ref. samples}
+A list object with matrix
+\item{samples}{The samples matrix normalized}
+\item{reference}{The reference matrix normalized}
 }
 
 \author{
   Thomas Wolf, Cristiano Oliveira
 }
 
-
 \examples{
-
-%\dontshow{
-%}
 data(sampleReadCounts)
 data(referenceReadCounts)
 
 normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
                                                  referenceReadCounts)
 }
-

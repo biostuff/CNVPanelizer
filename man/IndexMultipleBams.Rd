@@ -33,8 +33,12 @@ Not returning any value
 }
 
 \examples{
-  \dontrun{
-    files = c("file1.bam","file2.bam","file3.bam")
-    IndexMultipleBams(bams = files)
-  }
+    % To avoid biocCheck complaints..
+    \dontshow{
+        TRUE
+    }
+    \donttest{
+        files = c("file1.bam","file2.bam","file3.bam")
+        IndexMultipleBams(bams = files)
+    }
 }

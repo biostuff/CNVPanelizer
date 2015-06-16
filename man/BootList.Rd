@@ -11,7 +11,7 @@
 
 }
 \usage{
-BootList(geneNames, sampleMatrix, refmat, replicates)
+    BootList(geneNames, sampleMatrix, refmat, replicates)
 }
 \arguments{
   \item{geneNames}{
@@ -35,7 +35,7 @@ BootList(geneNames, sampleMatrix, refmat, replicates)
 
  Returns a list of numeric matrices:
  For each matrix a row represent a gene while each column represents
- bootstrapping sumsampling iteration.
+ bootstrapping subsampling iteration.
 
 }
 
@@ -45,8 +45,6 @@ BootList(geneNames, sampleMatrix, refmat, replicates)
 
 \examples{
 
-\dontshow{
-}
 data(sampleReadCounts)
 data(referenceReadCounts)
 ## Gene names should be same size as row columns
@@ -66,7 +64,7 @@ referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
 replicates <- 10
 
 # Perform the bootstrap based analysis
-BootList(geneNames,
+bootList <- BootList(geneNames,
          samplesNormalizedReadCounts,
          referenceNormalizedReadCounts,
          replicates = replicates)

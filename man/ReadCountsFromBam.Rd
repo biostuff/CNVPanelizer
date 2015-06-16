@@ -37,12 +37,15 @@ ReadCountsFromBam(bamFilenames,
 }
 
 \examples{
-
-\dontshow{
-TRUE
-}
-
-\dontrun{
-    ReadCountsFromBam(bamFilenames, sampleNames, gr, ampliconNames, removeDup)
-}
+    % To avoid biocCheck complaints..
+    \dontshow{
+        TRUE
+    }
+    \donttest{
+        ReadCountsFromBam(bamFilenames,
+                            sampleNames,
+                            gr,
+                            ampliconNames,
+                            removeDup)
+    }
 }

@@ -21,7 +21,7 @@ BedToGenomicRanges(panelBedFilepath, ampliconColumn, split)
     passed through \code{panelBedFilepath}.
 }
   \item{split}{
-     Char used as separator. It is ";" by default.
+     The character used as separator. It is ";" by default.
 }
 }
 
@@ -39,8 +39,8 @@ Thomas Wolf, Cristiano Oliveira
 \dontshow{
 TRUE
 }
-\dontrun{
+\donttest{
     bedFilepath <- file.path("someFile.bed")
     ampliconColumn <- 4
-    BedToGenomicRanges(bedFilepath, ampliconColumn)}
+    genomicRangesFromBed <- BedToGenomicRanges(bedFilepath, ampliconColumn)}
 }

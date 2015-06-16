@@ -20,25 +20,17 @@ CheckSignificance(bootList)
   }
 }
 \value{
-
 A list of report matrices. One entry for each entry of the bootList parameter.
-Each matrix contains the 5 percent quantile, the 95 percent quantile and logical
-information about the significance status.
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
- ...
+Each matrix contains the 5 percent quantile, the 95 percent quantile and 
+logical information about the significance status.
 }
 
 \author{
     Thomas Wolf, Cristiano Oliveira
 }
 
-
-
 \examples{
-
-\dontrun{
-    CheckSignificance(bootList)
+    \donttest{
+        CheckSignificance(bootList)
+    }
 }
-}
-

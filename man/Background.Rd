@@ -44,7 +44,8 @@ Background(geneNames,
 }
 
 \author{
-  Cristiano Oliveira, Thomas Wolf
+    Thomas Wolf,
+    Cristiano Oliveira 
 }
 
 \examples{
@@ -73,15 +74,10 @@ bootList <- BootList(geneNames,
                      referenceNormalizedReadCounts,
                      replicates = replicates)
 
-Background(geneNames,
-           samplesNormalizedReadCounts,
-           referenceNormalizedReadCounts,
-           bootList,
-           specificityLevel = 1.75,
-           replicates = replicates)
-
-\dontrun{
+background <- Background(geneNames,
+                        samplesNormalizedReadCounts,
+                        referenceNormalizedReadCounts,
+                        bootList,
+                        specificityLevel = 1.75,
+                        replicates = replicates)
 }
-
-}
-
