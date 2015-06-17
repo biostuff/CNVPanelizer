@@ -137,18 +137,6 @@ IndexMultipleBams <- function(bams,
   }
 }
 
-# WriteReadCountsToXLSX <- function(sampleReadCounts,
-#                                   referenceReadCounts,
-#                                   filepath = "readCounts.xls") {
-#   write.xlsx(sampleReadCounts,
-#              filepath,
-#              sheetName = "sampleReadCounts")
-#   write.xlsx(referenceReadCounts,
-#              filepath,
-#              sheetName = "referenceReadCounts",
-#              append = TRUE)
-# }
-
 WriteListToXLSX <- function(listOfDataFrames, filepath = "list.xlsx") {
   sizeOfList <- length(listOfDataFrames)
   dataFrameNames <- names(listOfDataFrames)
@@ -175,14 +163,6 @@ ReadXLSXToList <- function(filepath) {
   return(inputList)
 }
 
-# ReferenceBamFiles <- function(filepath) {
-#   unfactorize(ReadXLSXToList(filepath)$reference)[,1]
-# }
-#  
-# SampleBamFiles <- function(filepath) {
-#   unfactorize(ReadXLSXToList(filepath)$sample)[,1]
-# }
-#   
 unfactorize <- function(df){
   for(i in which(sapply(df, class) == "factor")) df[[i]]=as.character(df[[i]])
   return(df)
@@ -191,10 +171,6 @@ unfactorize <- function(df){
 ###############################################################################
 # functions for bootstrapping
 ###############################################################################
-#a function that randomly samples positions from a vector using bootstrap
-#BootstrapPositions <-  function(pos) {
-#    return(sample(pos, length(pos), replace = TRUE))
-#}
 
 #a function that randomly samples positions from a vector using subsampling
 SubsamplingPositions <- function(pos, mtry = round(sqrt(length(pos)))) {
@@ -409,24 +385,16 @@ ReportTables <- function(geneNames,
   i <- NULL
   reportTables <- foreach(i = seq_along(backgroundReport)) %do% {
     isSig <- (sigList[[i]][, 3] < 1) | (sigList[[i]][, 1] > 1)
-#     backgroundUp <- 1 * (backgroundReport[[i]][, 2] - 1)
-#     backgroundDown <- 1 * (1 - backgroundReport[[i]][, 1])
-    backgroundUp <- backgroundReport[[i]][, 3] - 1
-    backgroundDown <- 1 - backgroundReport[[i]][, 1]
+    backgroundUp <- backgroundReport[[i]][, 3]
+    backgroundDown <- backgroundReport[[i]][, 1]
     rMatGene <- ratioMatGene[, i]
-    aboveNoise <- (rMatGene > 1 & (rMatGene - 1) > backgroundUp) |
-      (ratioMatGene[, i] < 1 & (1 - ratioMatGene[, i]) > backgroundDown)
-#     up <- apply(bootList[[i]], 2, PercentAboveValue, value = 1.5)
-#     down <- apply(bootList[[i]], 2, PercentBelowValue, value = 0.5)
+    aboveNoise <- (rMatGene > 1 & (rMatGene) > backgroundUp) |
+                 (ratioMatGene[, i] < 1 & (ratioMatGene[, i]) < backgroundDown)
 
     dfTemp <- data.frame(medianRatio = ratioMatGene[, i],
-#                          up = up,
-#                          down = down,
                          fivePercentQuantile = sigList[[i]][, 1],
                          fiftyPercentQuantile = sigList[[i]][, 2],
                          ninetyFivePercentQuantile = sigList[[i]][, 3],
-#                          fivePercentNoise = backgroundReport[[i]][, 1],
-#                          ninetyfivePercentNoise = backgroundReport[[i]][, 2],
                          lowerNoise = backgroundReport[[i]][, 1],
                          medianNoise = backgroundReport[[i]][, 2],
                          upperNoise = backgroundReport[[i]][, 3],
@@ -435,40 +403,9 @@ ReportTables <- function(geneNames,
                          amplNum = as.vector(table(geneNames)),
                          passed = isSig + aboveNoise)
 
-# 
-# dfTemp <- data.frame(medianRatio = ratioMatGene[, i],
-#                      Up = up,
-#                      Down = down,
-#                      "5% Quantile" = sigList[[i]][, 1],
-#                      "50% Quantile" = sigList[[i]][, 2],
-#                      "95% Quantile" = sigList[[i]][, 3],
-#                      #                          fivePercentNoise = backgroundReport[[i]][, 1],
-#                      #                          ninetyfivePercentNoise = backgroundReport[[i]][, 2],
-#                      LowerBoundNoise = backgroundReport[[i]][, 1],
-#                      MedianNoise = backgroundReport[[i]][, 2],
-#                      UpperBoundNoise = backgroundReport[[i]][, 3],
-#                      Signif = isSig,
-#                      AboveNoise = aboveNoise,
-#                      Amplicons = as.vector(table(geneNames)),
-#                      Passed = isSig + aboveNoise)
-
-
-
-
-
-
-
-
-
-
-
     significativeNumbers <- 2
-
     dfTemp <- round_df(dfTemp, significativeNumbers)
-
     names(dfTemp) <- c("MedianRatio",
-#                        "Up",
-#                        "Down",
                        "5% Quantile",
                        "50% Quantile",
                        "95% Quantile",
@@ -531,24 +468,6 @@ AmplProb <- function(genesPos) {
   return(ampliconProb)
 }
 
-# #calculate the weight for each amplicon
-# multiGetAmplProb <- function(genesPos) {
-# 
-#     amplWeights = foreach(i = seq_along(genePosNonSig)) %do%  {
-#         AmplProb(genePosNonSig[[i]]) 
-#     }
-#     
-#     return(amplWeights)
-# }
-
-# RatioMatrix <- function(sampleMat, refMedian) {
-#   division <- function(a,b) {
-#     return(a/b)
-#   }
-#   ratioMatrix = apply(sampleMat, 2, division, b =refMedian)
-#   return(ratioMatrix)
-# }
-
 RatioMatrix <- function(sampleMat, refMedian) {
   apply(sampleMat, 2, `/`, refMedian)
 }
@@ -570,15 +489,9 @@ SampleNoiseGenes <- function(numAmpl = 2,
                                       SampleRatio(ratios,
                                                   numAmpl,
                                                   amplWeights = probs))
-  #get the 5 and 95 percent quantiles of this noise distribution    
-  #distributionQuantiles = quantile(sampleNoiseDistribution,c(0.05,0.95))
+  #get the upper, median and lower values of the noise distribution    
   medianNoise <- median(sampleNoiseDistribution)
-  sdNoise <- sd(sampleNoiseDistribution)
-#   firstQuantile <- medianNoise - specificityLevel * sdNoise
-#   lastQuantile <- medianNoise + specificityLevel * sdNoise
-#   distributionQuantiles = c(firstQuantile, lastQuantile)
-#   return(distributionQuantiles)
-  
+  sdNoise <- sd(sampleNoiseDistribution)  
   lowerBound <- medianNoise - specificityLevel * sdNoise
   upperBound <- medianNoise + specificityLevel * sdNoise
   sampledNoise = c(lowerBound, medianNoise, upperBound)
@@ -608,7 +521,6 @@ IterateAmplNum <- function(uniqueAmpliconNumbers,
                                     replicates = replicates,
                                     probs = probs,
                                     specificityLevel = specificityLevel)
-#    names(sampledNoise) = c("5%","95%")  
     sampledNoise
   }
   names(noiseResults) = as.character(uniqueAmpliconNumbers)    
