@@ -464,7 +464,7 @@ AmplProb <- function(genesPos) {
   #adjust the probablity for depending on the number of amplicons for each gene
   genePerc =  1/geneCounts
   #this information has to be available for each stable position
-  ampliconProb = rep(genePerc,geneCounts)
+  ampliconProb = rep(genePerc, geneCounts)
   return(ampliconProb)
 }
 
@@ -648,7 +648,7 @@ PlotBootstrapDistributions <- function(bootList,
     ratios <- NULL
     testsPassed <- NULL
     df <- data.frame(class = as.factor(colnames(bootList[[selSample]])),
-                     ratios = (as.vector(t(bootList[[selSample]]))), 
+                     ratios = (as.vector(t(bootList[[selSample]]))),
                      testsPassed = test)
     
     
@@ -669,9 +669,9 @@ PlotBootstrapDistributions <- function(bootList,
       filename <- sampleNames[selSample] 
     }
     test <- ggplot(df, aes(x = class, y = log(ratios), fill = testsPassed)) +
-      geom_boxplot() + ggtitle(filename) + 
+      geom_boxplot() + ggtitle(filename) +
       theme(plot.title = element_text(lineheight = 0.8, face = "bold"),
-            text = element_text(size = 15), 
+            text = element_text(size = 15),
             axis.text.x = element_text(angle = 90)) +
       scale_fill_manual(name = "CNV Reliability",
                         values = c("#56B4E9", "#CC79A7" ,"#D55E00"),
