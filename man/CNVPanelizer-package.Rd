@@ -23,8 +23,6 @@ For a complete list of functions, use library(help = "CNVPanelizer").
 \tabular{ll}{
 Package: \tab CNVPanelizer\cr
 Type: \tab Package\cr
-Version: \tab 0.99.3\cr
-Date: \tab 2014-11-11\cr
 License: \tab GPL-3\cr
 }
 }
