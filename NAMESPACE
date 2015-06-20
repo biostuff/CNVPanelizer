@@ -30,6 +30,7 @@ importFrom(IRanges, quantile)
 importFrom(IRanges, median)
 importFrom(IRanges, IQR)
 importFrom(IRanges, IRanges)
+importFrom(IRanges, sd)
 importFrom(plyr, revalue)
 importFrom(BiocParallel, bplapply)
 # Exported functions
