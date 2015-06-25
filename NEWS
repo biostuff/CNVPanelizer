@@ -1,0 +1,12 @@
+CHANGES IN VERSION 0.99
+-----------------------
+
+	o Initial Bioconductor release
+
+BUG FIXES
+
+        o Add required imports at NAMESPACE
+	o Improve code Styling
+	o Add documentation
+	o Remove unnecessary files
+
