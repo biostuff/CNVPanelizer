@@ -1,5 +1,3 @@
-library(foreach)
-
 #distribution setting
 lambdaNor = 1000
 lambdaAmp = 1.5 * lambdaNor 
