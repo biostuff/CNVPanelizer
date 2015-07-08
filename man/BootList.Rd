@@ -5,10 +5,9 @@
 }
 \description{
     Performs a hybrid bootstrapping subsampling
-    procedure similar to random forest.
-    A distribution of sample/reference ratios for
+    procedure similar to random forest. Returns
+    a distribution of sample/reference ratios for
     each gene and sample of interest combination.
-
 }
 \usage{
     BootList(geneNames, sampleMatrix, refmat, replicates)

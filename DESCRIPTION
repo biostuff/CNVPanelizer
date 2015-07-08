@@ -1,11 +1,10 @@
 Package: CNVPanelizer
 Type: Package
 Title: Reliable CNV detection in targeted sequencing applications
-Version: 0.99.6
-Date: 2014-11-11
+Version: 0.99.7
+Date: 2015-07-08
 Author: Cristiano Oliveira and Thomas Wolf
-    with contributions from Volker and Nicole
-Maintainer: Cristiano Oliveira <cristiano.oliveira@med.uni-heidelberg.de>
+Maintainer: Thomas Wolf <thomas_Wolf71@gmx.de>
 Description: A method that allows for the use of a collection of non-matched
     normal tissue samples. Our approach uses a non-parametric bootstrap
     subsampling of the available reference samples to estimate the distribution
@@ -35,4 +34,3 @@ License: GPL-3
 LazyData: false
 biocViews: Classification, Sequencing, Normalization, CopyNumberVariation
 VignetteBuilder: knitr
-

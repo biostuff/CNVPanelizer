@@ -5,8 +5,9 @@
 }
 \description{
 It generates a GenomicRanges object from a bed file.
-Needs to be passed the correct column number of the amplicon names
-and the separator used to be parsed properly.
+Needs to be passed the correct number of the gene name column.
+If the strings contain more information then just the gene name,
+a splitting character has to be defined. I.e GeneName1:Amplicon2
 }
 \usage{
 BedToGenomicRanges(panelBedFilepath, ampliconColumn, split)

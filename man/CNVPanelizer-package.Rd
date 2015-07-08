@@ -6,8 +6,9 @@
 Reliable CNV detection in targeted sequencing applications
 }
 \description{
-This package implements uses a collection of non-matched normal tissue samples
-as reference set to detect CNV aberrations on a test data set.
+This package implements an algorithm that uses a collection of non-matched
+normal tissue samples as reference set to detect CNV aberrations on a test
+data set.
 }
 \details{
 \tabular{lc}{

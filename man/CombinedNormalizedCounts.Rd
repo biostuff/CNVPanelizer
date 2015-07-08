@@ -32,7 +32,7 @@ A list object with matrix
 }
 
 \author{
-  Thomas Wolf, Cristiano Oliveira
+  Cristiano Oliveira, Thomas Wolf
 }
 
 \examples{
