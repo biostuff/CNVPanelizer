@@ -63,6 +63,12 @@ ReadCountsFromBam <- function(bamFilenames,
                       min.mapq = 20,
                       get.width = TRUE)
   }
+
+  listOfBamsHasOnlyOneElement <- length(bamFilenames) == 1
+  if (listOfBamsHasOnlyOneElement) {
+    curbam <- matrix(curbam)
+  }
+
   colnames(curbam) = sampleNames
   rownames(curbam) = ampliconNames
   return(curbam)
