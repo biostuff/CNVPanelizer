@@ -83,17 +83,20 @@ CombinedNormalizedCounts <- function(sampleCounts,
   classes = rep(c("samples", "reference"),
                 c(ncol(sampleCounts), ncol(referenceCounts)))
   #normalize all samples
-  bamDataRangesNorm = as.matrix((normalizeGenome(allCounts,
-                                                 normType = "median")))
+  bamDataRangesNorm = normalizeGenome(allCounts, normType = "median")
+
   if(!is.null(ampliconNames)) {
     #add the amplicon names as rownames
     rownames(bamDataRangesNorm) = ampliconNames
   }
+
   #get the count information for one sample
   tinyValueToAvoidZeroReadCounts <- 0.00001
-  samplesNorm <- bamDataRangesNorm[, which(classes == "samples")]
+  samplesNorm <- bamDataRangesNorm[, which(classes == "samples"),
+                                   drop = FALSE]
   normalizedSamples =  samplesNorm + tinyValueToAvoidZeroReadCounts
-  referenceNorm <- bamDataRangesNorm[, which(classes == "reference")]
+  referenceNorm <- bamDataRangesNorm[, which(classes == "reference"),
+                                     drop = FALSE]
   normalizedReference =  referenceNorm + tinyValueToAvoidZeroReadCounts
   return(list(samples = normalizedSamples, reference = normalizedReference))
 }
@@ -249,26 +252,22 @@ BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
 
     geneBootPos <- c(lapply(genesPos, SubsamplingPositions), recursive = TRUE)
 
-
     # given the obtained sampling using the bootstraps calulated above
-    refMatPos <- refmat[geneBootPos, sampleBootPos]
-    bootRatio <- testSample[geneBootPos]/rowMedians(refMatPos)
+    refMatPos <- refmat[geneBootPos, sampleBootPos, drop=FALSE]
 
+    bootRatio <- testSample[geneBootPos]/rowMedians(refMatPos)
 
     # after the bootstrapping the gene positions in the vector changes
     # so recalculate them
     adjustedLength <- function(a) {
       round(sqrt(length(a)))
     }
-    
+
     splitClass <- rep(names(genesPos), sapply(genesPos, adjustedLength))
-    
     newGenesPos <- split(seq_along(splitClass), splitClass)
-    
-    
     sapply(newGenesPos, PositionMedian, vector = bootRatio)
   }
-  
+
   names(bootListSamples) <- basename(colnames(sampleMatrix))
   return(bootListSamples)
 }
