@@ -30,6 +30,6 @@ test.bootList <- function() {
     resultForGENE2 <- bootList[[1]]["GENE2"][[1]]
 
     tolerance <- 0.0001
-    checkEquals(resultForGENE1, 0.1428571, tolerance = tolerance)
-    checkEquals(resultForGENE2, 0.3666667, tolerance = tolerance)
+    checkEquals(resultForGENE1, 0.125, tolerance = tolerance)
+    checkEquals(resultForGENE2, 0.3318182, tolerance = tolerance)
 }

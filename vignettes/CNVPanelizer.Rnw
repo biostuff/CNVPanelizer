@@ -60,37 +60,38 @@
 }
 
 \begin{document}
-
 \maketitle
 
 %\renewcommand\contentsname{Table of contents} %Just to change title of TOC
 %\tableofcontents
 
-Amplicon based targeted sequencing, over the last few years, has become a mainstay
-in the clinical use of next generation sequencing technologies. For the 
-detection of somatic and germline SNPs this has been proven to be a highly
-robust methodology. One area of genomic analysis which is usually not covered
-by targeted sequencing, is the detection of copy number variations (CNVs).
-While a large number of available algorithms and software address the problem
-of CNV detection in whole genome or whole exome sequencing, there are no such
-established tools for amplicon based targeted sequencing. We introduced a novel
+Amplicon based targeted sequencing, over the last few years, has
+become a mainstay in the clinical use of next generation sequencing
+technologies. For the detection of somatic and germline SNPs this
+has been proven to be a highly robust methodology. One area of
+genomic analysis which is usually not covered by targeted sequencing,
+is the detection of copy number variations (CNVs). While a large number
+of available algorithms and software address the problem of CNV detection
+in whole genome or whole exome sequencing, there are no such established
+tools for amplicon based targeted \mbox{sequencing}. We introduced a novel
 algorithm for the reliable detection of CNVs from targeted sequencing.
 
 \section{Introduction}
-To assess if a region specific change in read counts correlates with the
-presence of CNVs, we implemented an algorithm that uses a subsampling
-strategy similar to Random Forest to reliable predict the presence of 
-CNVs. We also introduce a novel method to correct for the background noise
-introduced by sequencing genes with a low number of amplicons. To make it
-available to the community we implemented the algorithm as an R package.
+To assess if a region specific change in read counts correlates with
+the presence of CNVs, we implemented an algorithm that uses a
+subsampling strategy similar to Random Forest to reliable predict the
+presence of CNVs. We also introduce a novel method to correct for the
+background noise introduced by sequencing genes with a low number of
+amplicons. To make it available to the community we implemented the
+algorithm as an R package.
 
 \section{Using}
 This section provides an overview of the package functions.
 
 \subsection{Installing and Loading the package}
 
-The package is available through the Bioconductor repository and can be
-installed and loaded using the following R commands:
+The package is available through the Bioconductor repository and can
+be installed and loaded using the following R commands:
 
 <<InstallingPackage, echo=TRUE, eval=FALSE, message=FALSE>>=
 # To install from Bioconductor
@@ -268,12 +269,12 @@ significant copy number variations $G_{sig}$ are not included in the
 subsampling pool.
 Each amplicon is weighted according to the number of amplicons the respective
 gene has $w_A = \frac{1}{|A_g|}$. Thus the probablity of sampling from a gene
-is the same regardless of the number amplicons. For each number of amplicons
-a background noise distribution is estimated. The reported background  is
-defined by the lower noise  $medianNoise - sensitivityConstant * standardDeviationNoise$ 
-and the upper noise $medianNoise + sensitivityConstant * standardDeviationNoise$ of the respective distribution. The ratio has to be
-below (deletion) or above (amplification) this noise distribution to be
-considered reliable.
+is the same regardless of the number amplicons. For each number of amplicons a
+background noise distribution is estimated. The reported background is defined
+by lower noise $medianNoise - sensitivityConstant * standardDeviationNoise$
+and upper noise $medianNoise + sensitivityConstant * standardDeviationNoise$
+of the respective distribution. The ratio has to be below (deletion) or above
+(amplification) this noise distribution to be considered reliable.
 
 <<BackgroundNoise, echo = TRUE>>=
 
@@ -419,7 +420,7 @@ PlotBootstrapDistributions(bootList, reportTables)[[sampleIndexToShow]]
     \begin{tabular}{| l | p{15cm} |} \hline
     No Change & There is no change in the read count \\ \hline
     Non Reliable Change & The change is significant but
-    below the noise level for the number of amplicons associated with this gene\\ \hline
+    below the noise level for the number of amplicons for this gene\\ \hline
     Reliable Change & The change is above the noise
     level and significant \\ \hline
     \end{tabular}

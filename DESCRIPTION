@@ -1,7 +1,7 @@
 Package: CNVPanelizer
 Type: Package
 Title: Reliable CNV detection in targeted sequencing applications
-Version: 0.99.8
+Version: 0.99.9
 Date: 2015-07-10
 Author: Cristiano Oliveira and Thomas Wolf
 Maintainer: Thomas Wolf <thomas_Wolf71@gmx.de>
@@ -13,24 +13,23 @@ Description: A method that allows for the use of a collection of non-matched
     each of the targeted genes. The obtained information allows us to reliably 
     classify the copy number aberrations on the gene level.
 Depends:
-    R (>= 3.2.0),
-    cn.mops
+    R (>= 3.2.0)
 Suggests:
     knitr,
     RUnit,
     BiocGenerics
 Imports:
-    BiocParallel,
+    NOISeq,
     GenomicRanges,
     IRanges,
     Rsamtools,
     exomeCopy,
     foreach,
     ggplot2,
-    matrixStats,
     plyr,
     xlsx
 License: GPL-3
 LazyData: false
 biocViews: Classification, Sequencing, Normalization, CopyNumberVariation
 VignetteBuilder: knitr
+NeedsCompilation: no
