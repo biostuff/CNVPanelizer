@@ -212,8 +212,8 @@ ampliconNames <- NULL
 \subsection{Normalization}
 
 To account for sample and sequencing run specific variations the counts
-obtained for each sample were normalized using a wrapper function around
-the normalization from the \textbf{cn.mops} package.
+obtained for each sample were normalized using the TMM (Trimmed Mean of M)
+from the \textbf{NOISeq} package.
 <<NormalizedReadCounts, echo = TRUE>>=
 
 normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
@@ -238,10 +238,18 @@ gene, using only a randomly selected subset of amplicons. A significant change
 is considered as an amplification for a ratio > 1 and a deletion for a
 ratio < 1.
 
-<<BootList, echo = TRUE,message=FALSE,warning=FALSE>>=
+<<NumberOfReplicates, echo = TRUE,message=FALSE,warning=FALSE>>=
 
 # Number of bootstrap replicates to be used
+replicates <- 10000
+@
+
+<<RealNumberOfReplicatesToBeUsed, echo = FALSE>>=
+# To speed up vignette generation...
 replicates <- 10
+@
+
+<<BootList, echo = TRUE,message=FALSE,warning=FALSE>>=
 
 # Perform the bootstrap based analysis
 bootList <- BootList(geneNames,
@@ -341,8 +349,10 @@ reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, ]
     \begin{tabular}{| l | p{15cm} |} \hline
     Median Ratio & The median amplicon ratio between reference and sample
     of interest for the gene\\ \hline
-    5\% | 50\% | 95\% Quantile & The quantiles of the bootstrap
-    distribution\\ \hline
+    LBBtp | MeanBtp | UBBtp Ratio & The Lower, Mean and Upper bounds of the
+    Bootstrap Ratio distribution. \\ \hline
+%    5\% | 50\% | 95\% Quantile & The quantiles of the bootstrap
+%    distribution\\ \hline
     Lower | Median | Upper Noise & The Lower/Median/Upper background
     noise bounds. \\ \hline
     Signif. & Boolean value representing if read counts
