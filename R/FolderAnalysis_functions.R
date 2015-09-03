@@ -595,7 +595,7 @@ PlotBootstrapDistributions  <- function(bootList,
       filename <- sampleNames[selSample] 
     }
     test <- ggplot(df, aes(x = class, y = log2(ratios), fill = testsPassed)) +
-      geom_boxplot() + ggtitle(filename) +
+      geom_violin() + ggtitle(filename) +
       theme(plot.title = element_text(lineheight = 0.8, face = "bold"),
             text = element_text(size = 15),
             axis.text.x = element_text(angle = 90)) +
