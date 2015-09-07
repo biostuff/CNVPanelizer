@@ -30,6 +30,6 @@ Imports:
     xlsx
 License: GPL-3
 LazyData: false
-biocViews: Classification, Sequencing, Normalization, CopyNumberVariation
+biocViews: Classification, Sequencing, Normalization, CopyNumberVariation, Coverage
 VignetteBuilder: knitr
 NeedsCompilation: no
