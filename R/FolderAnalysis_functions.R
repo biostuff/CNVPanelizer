@@ -432,9 +432,9 @@ ReportTables <- function(geneNames,
     significativeNumbers <- 2
     dfTemp <- roundDf(dfTemp, significativeNumbers)
     names(dfTemp) <- c("MeanRatio",
-                       "LowerBoundBootstrapRatio",
-                       "MeanBootstrapRatio",
-                       "UpperBoundBootstrapRatio",
+                       "LowerBoundBoot",
+                       "MeanBoot",
+                       "UpperBoundBoot",
                        "LowerNoise",
                        "MeanNoise",
                        "UpperNoise",

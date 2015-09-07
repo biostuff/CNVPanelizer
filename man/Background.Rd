@@ -4,8 +4,10 @@
   Background
 }
 \description{
-    Estimates the dependence of background noise on the number of amplicons
-    sequenced for each gene.
+    Makes use of a subsampling approach to estimate the background
+    noise when sequencing a gene with a specific number of amplicons.
+    The 95 percent confidence interval is returned for each unique number
+    of amplicons in the experiment.
 }
 \usage{
 Background(geneNames,
@@ -16,7 +18,8 @@ Background(geneNames,
 }
 \arguments{
   \item{geneNames}{
-    Names of the genes
+    A vector of gene names, with one entry for each sequenced
+    amplicon.
 }
   \item{samplesNormalizedReadCounts}{
   A matrix with the normalized read counts of the samples of interest
@@ -34,9 +37,9 @@ Background(geneNames,
 
 \value{
  Returns a list of data frames. One data frame for each sample of interest.
- The data frames report the background noise for each number of gene
- associated amplicons
- being sequenced.
+ The data frames report the 95 percent confidence interval of the background
+ noise for each number of amplicons and sample combination.
+
 }
 
 \author{

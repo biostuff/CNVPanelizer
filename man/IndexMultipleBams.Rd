@@ -4,7 +4,7 @@
   IndexMultipleBams
 }
 \description{
-    Index a list of bam files if there is no index for the entries in the list.
+    Index a list of bam files if there is no index exists for the file entries in the list.
 }
 \usage{
 IndexMultipleBams(bams, index_type = ".bam.bai")
