@@ -2,3 +2,12 @@
 .Rbuildignore
 .Rhistory
 .travis.yml
+.trash
+vignettes/*-blx.bib
+vignettes/*-concordance.tex
+vignettes/*.log
+vignettes/*.pdf
+vignettes/*.run.xml
+vignettes/*.synctex.gz
+vignettes/*.tex
+
