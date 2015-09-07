@@ -37,7 +37,8 @@ ReportTables(geneNames,
 \value{
    Returns a list of tables, one for each sample of interest.
    Each of these tables contains numerical information
-   of the aberration status of each gene.
+   of the aberration status of each gene. For a detailed description
+   see the Vignette.
 }
 
 \author{

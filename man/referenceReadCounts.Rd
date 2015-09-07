@@ -3,8 +3,8 @@
 \alias{referenceReadCounts}
 \title{Reference sample data}
 \description{
-    Synthetic reference data set for simulating read counts from
-    a Panel sequencing experiment
+    Synthetic reference data set of simulated read counts.
+    Only to be used for code examples.
 }
 \usage{referenceSamples}
 \value{A matrix with columns identifying the sample names and

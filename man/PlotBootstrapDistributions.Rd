@@ -5,7 +5,7 @@
 }
 
 \description{
-    Plots the generated bootstrap distribution as boxplots.
+    Plots the generated bootstrap distribution as violin plots.
     Genes showing significant values
     are marked in a different color.
 }
@@ -41,7 +41,7 @@ PlotBootstrapDistributions(bootList,
 }
 
 \value{
-A list with plots
+A list with ggplot2 objects.
 }
 
 \author{

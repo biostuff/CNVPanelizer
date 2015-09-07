@@ -13,14 +13,14 @@ Description: A method that allows for the use of a collection of non-matched
     each of the targeted genes. The obtained information allows us to reliably 
     classify the copy number aberrations on the gene level.
 Depends:
-    R (>= 3.2.0)
+    R (>= 3.2.0),
+    GenomicRanges
 Suggests:
     knitr,
     RUnit,
     BiocGenerics
 Imports:
     NOISeq,
-    GenomicRanges,
     IRanges,
     Rsamtools,
     exomeCopy,

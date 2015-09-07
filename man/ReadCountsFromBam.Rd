@@ -21,19 +21,25 @@ ReadCountsFromBam(bamFilenames,
     Vector of sample names to be used as colums names instead of bam filepaths
   }
   \item{gr}{
-    Genomic Range object
+    Genomic Range object as created by \code{BedToGenomicRanges}
   }
   \item{ampliconNames}{
-    List of amplicon names
+    List of amplicon defining names
   }
   \item{removeDup}{
-  Boolean value in to remove duplicates
+  Boolean value to remove duplicates. For reads with the same start site, end site
+  and orientation only one is kept. For IonTorrent data this can be used to
+  as an additional quality control. For Illumina data too many reads are being removed.
   }
 }
 
 \value{
     A matrix with read counts where the rows represents the Amplicons
     and the columns represents the samples.
+}
+
+\author{
+    Thomas Wolf, Cristiano Oliveira
 }
 
 \examples{
