@@ -291,16 +291,11 @@ CheckSignificance <- function(bootList) {
   i <- NULL
   j <- NULL
   sigTables =  foreach(i = seq_along(bootList)) %:%
-    foreach(j = 1:ncol(bootList[[i]]),.combine = rbind) %do% {
-      #quantiles <- quantile(bootList[[i]][,j],c(0.05, 0.5, 0.95))
+    foreach(j = 1:ncol(bootList[[i]]), .combine = rbind) %do% {
       meanNoise <- mean(bootList[[i]][,j])
-      sdNoise <- sd(bootList[[i]][,j])
-
-      lowerBound <- meanNoise +  qnorm(0.025) * sdNoise
-      upperBound <- meanNoise + qnorm(1 - 0.025) * sdNoise
-
-      bounds <- c(lowerBound,meanNoise,upperBound)
-
+      lowerBound <- quantile(bootList[[i]][,j], 0.025, type = 1)
+      upperBound <- quantile(bootList[[i]][,j], 1 - 0.025, type = 1)
+      bounds <- c(lowerBound, meanNoise, upperBound)
       roundedBounds <- round(bounds, digits = 2)
       maybeAmplification <- roundedBounds[1] > 1
       maybeDeletion <- roundedBounds[3] < 1
