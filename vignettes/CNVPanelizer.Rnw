@@ -292,10 +292,11 @@ Each amplicon is weighted according to the number of amplicons the respective
 gene has $w_A = \frac{1}{|A_g|}$. Thus the probablity of sampling from a gene
 is the same regardless of the number amplicons. For each number of amplicons a
 background noise distribution is estimated. The reported background is defined
-by the lower noise $meanNoise - qnorm(0.025) * standardDeviationNoise$ and
+by the lower noise $meanNoise + qnorm(0.025) * standardDeviationNoise$ and
 the upper noise $meanNoise + qnorm(0.975) * standardDeviationNoise$ of the
-respective distribution. The mean ratio has to be below (deletion) or above (amplification)
-the noise distribution to be considered reliable.
+respective distribution. The upper bound ratio has to be below the lower noise
+(deletion) or the lower bound ratio above the upper noise (amplification) to be
+considered reliable.
 
 <<BackgroundNoise, echo = TRUE>>=
 

@@ -10,4 +10,6 @@ vignettes/*.pdf
 vignettes/*.run.xml
 vignettes/*.synctex.gz
 vignettes/*.tex
+vignettes/*.out
+vignettes/*.aux
 

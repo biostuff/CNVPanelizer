@@ -286,15 +286,16 @@ BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
 }
 
 #calculate significance 
-CheckSignificance <- function(bootList) {
+CheckSignificance <- function(bootList, significanceLevel = 0.05) {
+  margin <- significanceLevel/2
   # package check complains
   i <- NULL
   j <- NULL
   sigTables =  foreach(i = seq_along(bootList)) %:%
     foreach(j = 1:ncol(bootList[[i]]), .combine = rbind) %do% {
       meanNoise <- mean(bootList[[i]][,j])
-      lowerBound <- quantile(bootList[[i]][,j], 0.025, type = 1)
-      upperBound <- quantile(bootList[[i]][,j], 1 - 0.025, type = 1)
+      lowerBound <- quantile(bootList[[i]][,j], margin, type = 1)
+      upperBound <- quantile(bootList[[i]][,j], 1 - margin, type = 1)
       bounds <- c(lowerBound, meanNoise, upperBound)
       roundedBounds <- round(bounds, digits = 2)
       maybeAmplification <- roundedBounds[1] > 1
@@ -382,24 +383,18 @@ ReportTables <- function(geneNames,
                          referenceNormalizedReadCounts,
                          bootList,
                          backgroundNoise) {
-
   # get the background noise in a format that can be used
   # for a report table
   backgroundReport <- BackgroundReport(backgroundNoise, geneNames)
-
   # gene index
   genesPositionsIndex <- IndexGenesPositions(geneNames)
-
   # calculate the reference mean
   #refMean <- apply(referenceNormalizedReadCounts, 1, mean)
   refMean <- rowMeans(referenceNormalizedReadCounts)
-
   # calculate the ratio matrix for each sample
   ratioMatrix <- RatioMatrix(samplesNormalizedReadCounts, refMean)
-
   # calculate the genewise ratio matrix from the ratio_mat
   ratioMatGene <- GeneMeanRatioMatrix(genesPositionsIndex, ratioMatrix)
-
   sigList <- CheckSignificance(bootList)
   # because package generaton complains..
   i <- NULL
@@ -408,10 +403,9 @@ ReportTables <- function(geneNames,
     backgroundUp <- backgroundReport[[i]][, 3]
     backgroundDown <- backgroundReport[[i]][, 1]
     rMatGene <- ratioMatGene[, i]
-    aboveNoise <- (rMatGene > 1 & (rMatGene) > backgroundUp) |
-      (ratioMatGene[, i] < 1 &
-         (ratioMatGene[, i]) < backgroundDown)
-
+    aboveNoise <- (rMatGene > 1 & sigList[[i]][, 1] > backgroundUp) |
+      (rMatGene < 1 &
+         sigList[[i]][, 3] < backgroundDown)
     dfTemp <- data.frame(meanRatio = ratioMatGene[, i],
                          lowerBoundBootstrapRatio = sigList[[i]][, 1],
                          meanBootstrapRatio = sigList[[i]][, 2],
@@ -493,7 +487,9 @@ SampleRatio <- function(ratios, numAmpl, amplWeights = NULL) {
 SampleNoiseGenes <- function(numAmpl = 2,
                              ratios,
                              replicates = 100,
-                             probs = NULL) {
+                             probs = NULL,
+                             significanceLevel = 0.05) {
+  margin <- significanceLevel / 2
   # now repeat the sampling for the selected number of
   # amplicons replicates
   sampleNoiseDistribution = replicate(replicates,
@@ -520,8 +516,8 @@ SampleNoiseGenes <- function(numAmpl = 2,
   #upperBound <- ci$bca[5]
   #specificityLevel <- 2
 
-  lowerBound <- meanNoise +  qnorm(0.025) * sdNoise
-  upperBound <- meanNoise + qnorm(1 - 0.025) * sdNoise
+  lowerBound <- meanNoise +  qnorm(margin) * sdNoise
+  upperBound <- meanNoise + qnorm(1 - margin) * sdNoise
 
   sampledNoise = c(lowerBound, meanNoise, upperBound)
   names(sampledNoise) = paste0(c("Lower", "Mean", "Upper"), "Noise")
@@ -564,9 +560,9 @@ PlotBootstrapDistributions  <- function(bootList,
   plotList <- foreach(i = seq_along(bootList)) %do% {
     selSample <- i
     test <- as.factor(reportTables[[selSample]][, "Passed"])
-    test <- revalue(test, c(`0` = "noChange",
-                            `1` = "nonReliableChange",
-                            `2` = "ReliableChange"))
+    suppressMessages(test <- revalue(test, c(`0` = "noChange",
+                                             `1` = "nonReliableChange",
+                                             `2` = "ReliableChange")))
     ratios <- NULL
     testsPassed <- NULL
     df <- data.frame(class = as.factor(colnames(bootList[[selSample]])),
