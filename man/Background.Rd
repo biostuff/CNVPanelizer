@@ -4,20 +4,22 @@
   Background
 }
 \description{
-    Estimates the dependence of background noise on the number of amplicons
-    sequenced for each gene.
+    Makes use of a subsampling approach to estimate the background
+    noise when sequencing a gene with a specific number of amplicons.
+    The 95 percent confidence interval is returned for each unique number
+    of amplicons in the experiment.
 }
 \usage{
 Background(geneNames,
            samplesNormalizedReadCounts,
            referenceNormalizedReadCounts,
            bootList,
-           specificityLevel = 1.75,
            replicates = 1000)
 }
 \arguments{
   \item{geneNames}{
-    Names of the genes
+    A vector of gene names, with one entry for each sequenced
+    amplicon.
 }
   \item{samplesNormalizedReadCounts}{
   A matrix with the normalized read counts of the samples of interest
@@ -28,9 +30,6 @@ Background(geneNames,
   \item{bootList}{
   A list as returned by BootList
 }
-  \item{specificityLevel}{
-  A list as returned by BootList
-}
   \item{replicates}{
     an integer number of how many replicates should be performed
 }
@@ -38,9 +37,9 @@ Background(geneNames,
 
 \value{
  Returns a list of data frames. One data frame for each sample of interest.
- The data frames report the background noise for each number of gene
- associated amplicons
- being sequenced.
+ The data frames report the 95 percent confidence interval of the background
+ noise for each number of amplicons and sample combination.
+
 }
 
 \author{
@@ -65,7 +64,7 @@ normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
 samplesNormalizedReadCounts = normalizedReadCounts["samples"][[1]]
 referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
 
-# Should be used values above 10000
+#Values above 10000 should be used
 replicates <- 10
 
 # Perform the bootstrap based analysis
@@ -78,6 +77,6 @@ background <- Background(geneNames,
                         samplesNormalizedReadCounts,
                         referenceNormalizedReadCounts,
                         bootList,
-                        specificityLevel = 1.75,
                         replicates = replicates)
 }
+

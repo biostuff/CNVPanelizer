@@ -1,4 +1,17 @@
-CHANGES IN VERSION 0.99
+
+CHANGES IN VERSION 0.99.7
+
+-----------------------
+
+        o Improvements for sensitivity
+
+BUG FIXES
+
+        o Improve code Styling
+        o Add documentation
+
+
+CHANGES IN VERSION 0.99.6
 -----------------------
 
 	o Initial Bioconductor release

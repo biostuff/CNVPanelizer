@@ -3,8 +3,8 @@
 \alias{sampleReadCounts}
 \title{Test sample data}
 \description{
-    Synthetic data set for simulating read counts
-    from a Panel sequencing experiment
+    Synthetic data set of simulated read counts.
+    Only to be used for running the code examples.
 }
 \usage{testSamples}
 \value{A matrix with columns identifying the sample names and

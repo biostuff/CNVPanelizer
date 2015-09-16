@@ -5,7 +5,7 @@
 }
 \description{
     Reads a list of read count matrices from a xlsx as generated
-    by WriteReadCountsToXLSX
+    by \code{WriteReadCountsToXLSX}
 }
 \usage{
 ReadXLSXToList(filepath)

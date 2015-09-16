@@ -5,17 +5,18 @@
 }
 \description{
     Performs a hybrid bootstrapping subsampling
-    procedure similar to random forest.
-    A distribution of sample/reference ratios for
+    procedure similar to random forest. It bootstraps the reference
+    samples and subsamples the amplicons associated with each gene.
+    Returns a distribution of sample/reference ratios for
     each gene and sample of interest combination.
-
 }
 \usage{
     BootList(geneNames, sampleMatrix, refmat, replicates)
 }
 \arguments{
   \item{geneNames}{
-     A vector of the gene names used in the panel.
+     A vector of gene names, with one entry for each sequenced
+     amplicon.
 }
   \item{sampleMatrix}{
      A vector or matrix of the read counts from the sample of interest.
@@ -35,7 +36,7 @@
 
  Returns a list of numeric matrices:
  For each matrix a row represent a gene while each column represents
- bootstrapping subsampling iteration.
+ a bootstrapping/subsampling iteration.
 
 }
 

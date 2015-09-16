@@ -5,11 +5,17 @@
 }
 \description{
 It generates a GenomicRanges object from a bed file.
-Needs to be passed the correct column number of the amplicon names
-and the separator used to be parsed properly.
+Needs to be passed the correct number of the gene name column.
+If the strings contain more information then just the gene name,
+a splitting character (split) has to be defined. I.e GeneName1;Amplicon2
 }
 \usage{
-BedToGenomicRanges(panelBedFilepath, ampliconColumn, split)
+BedToGenomicRanges(panelBedFilepath,
+                   ampliconColumn,
+                   split,
+                   doReduce,
+                   rangeExtend,
+                   skip)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -17,17 +23,33 @@ BedToGenomicRanges(panelBedFilepath, ampliconColumn, split)
       Filepath of the bed file.
 }
   \item{ampliconColumn}{
-    Number of the column that identifies the amplicon name at the bed file
+    Number of the column that identifies the gene name in the bed file
     passed through \code{panelBedFilepath}.
 }
   \item{split}{
-     The character used as separator. It is ";" by default.
+     The character used as separator in the \code{ampliconColumn}.
+     It is ";" by default.
 }
+  \item{doReduce}{
+     Should overlapping ranges be merged.
+}
+  \item{rangeExtend}{
+     Should the defined ranges be extended left and right
+     by the given value.
+     Affects the merging of overlapping regions and
+     also read counting.
+}
+  \item{skip}{
+     How many lines should be skipped from the top of the bed file.
+     The function assumes a bed file with column names.
+     Thus default is skip = 1.
+}
+
 }
 
 \value{
 A \code{GenomicRanges} object containing information about the amplicons 
-described at the bed file.
+described in the bed file.
 }
 
 \author{
@@ -44,3 +66,4 @@ TRUE
     ampliconColumn <- 4
     genomicRangesFromBed <- BedToGenomicRanges(bedFilepath, ampliconColumn)}
 }
+

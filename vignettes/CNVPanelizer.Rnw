@@ -36,7 +36,7 @@
 % the references do no show at the end ?!?!
 \addbibresource{CNVPanelizer.bib} % Specifying the packages.bib file 
 
-\title{CNVPanelizer: Reliable CNV detection in target sequencing app.}
+\title{CNVPanelizer: Reliable CNV detection in target sequencing applications}
 
 \author{Cristiano Oliveira {\tt <cristiano.oliveira@med.uni-heidelberg.de>}}
 
@@ -45,7 +45,7 @@
   \texttt{cristiano.oliveira@med.uni-heidelberg.de}
   \and
   Wolf, Thomas\\
-  \texttt{thomas.wolf@med.uni-heidelberg.de}
+  \texttt{thomas\_Wolf71@gmx.de}
 }
 
 \usepackage[margin=1in, a4paper]{geometry}
@@ -60,37 +60,38 @@
 }
 
 \begin{document}
-
 \maketitle
 
 %\renewcommand\contentsname{Table of contents} %Just to change title of TOC
 %\tableofcontents
 
-Amplicon targeted sequencing, over the last few years, has become a mainstay
-in the clinical use of next generation sequencing technologies. For the 
-detection of somatic and germline SNPs this has been proven to be a highly
-robust methodology. One area of genomic analysis which is usually not covered
-by targeted sequencing, is the detection of copy number variations (CNVs).
-While a large number of available algorithms and software address the problem
-of CNV detection in whole genome or whole exome sequencing, there are no such
-established tools for amplicon based targeted sequencing. We introduced a novel
-algorithm for the reliable detection of CNV from targeted sequencing.
+Amplicon based targeted sequencing, over the last few years, has
+become a mainstay in the clinical use of next generation sequencing
+technologies. For the detection of somatic and germline SNPs this
+has been proven to be a highly robust methodology. One area of
+genomic analysis which is usually not covered by targeted sequencing,
+is the detection of copy number variations (CNVs). While a large number
+of available algorithms and software address the problem of CNV detection
+in whole genome or whole exome sequencing, there are no such established
+tools for amplicon based targeted \mbox{sequencing}. We introduced a novel
+algorithm for the reliable detection of CNVs from targeted sequencing.
 
 \section{Introduction}
-To assess if a region specific change in read counts correlates with the
-presence of CNVs, we implemented an algorithm that uses a subsampling
-strategy similar to Random Forest to predict the presence of reliable
-CNVs. We also introduce a novel method to correct for the background noise
-introduced by sequencing genes with a low number of amplicons. To make it
-available to the community we implemented the algorithm as an R package.
+To assess if a region specific change in read counts correlates with
+the presence of CNVs, we implemented an algorithm that uses a
+subsampling strategy similar to Random Forest to reliable predict the
+presence of CNVs. We also introduce a novel method to correct for the
+background noise introduced by sequencing genes with a low number of
+amplicons. To make it available to the community we implemented the
+algorithm as an R package.
 
 \section{Using}
 This section provides an overview of the package functions.
 
 \subsection{Installing and Loading the package}
 
-The package is available through the Bioconductor repository and can be
-installed and loaded using the following R commands:
+The package is available through the Bioconductor repository and can
+be installed and loaded using the following R commands:
 
 <<InstallingPackage, echo=TRUE, eval=FALSE, message=FALSE>>=
 # To install from Bioconductor
@@ -119,7 +120,7 @@ associated with the panel.
 # Bed file defining the amplicons
 bedFilepath <- "/somePath/someFile.bed"
 
-# The column number at the BED file where the amplicon column names are
+# The column number of the gene Names in the BED file.
 amplColumnNumber <- 4
 
 # Extract the information from a bed file
@@ -166,16 +167,18 @@ package from the Bioconductor project. All reads overlapping with the region
 of an amplicon were counted for this amplicon. Only reads with a mapping
 quality $\geq 20$ were counted and the function allows to remove PCR
 Duplicates. For reads with the same start site, end site and chromosomal
-orientation only one is kept. PCR duplicates do not have a large influence
-on the ratio between reference and sample, still this might serve as an
-additional quality control step in a CNV detection pipeline.
+orientation only one is kept. PCR duplicates might cause a bias for the ratio
+between reference and the samples of interest. Thus this serves as an
+additional quality control step in the CNV detection pipeline. It is only
+recommended for Ion Torrent generated data. For Illumina data this step is not
+recommended.
 
 \newpage
 
 <<LoadingReadCountsData, echo = TRUE, eval=FALSE>>=
 
 # Should duplicated reads (same start, end site and strand) be removed
-removePcrDuplicates <- TRUE # It is set to TRUE for amplicon based sequencing
+removePcrDuplicates <- FALSE # TRUE is only recommended for Ion Torrent data
 
 # Read the Reference data set
 referenceReadCounts <- ReadCountsFromBam(referenceFilenames,
@@ -201,9 +204,16 @@ the other as a testing set
 <<LoadingSyntheticData, echo = TRUE>>=
 data(sampleReadCounts)
 data(referenceReadCounts)
-## Gene names should be same size as row columns
+
+# Gene names should be same size as row columns
+# For real data this is a vector of the genes associated
+# with each row/amplicon. For example Gene1, Gene1, Gene2, Gene2, Gene3, ...
 geneNames <- row.names(referenceReadCounts)
+
 # Not defined for synthetic data
+# For real data this gives a unique name to each amplicon.
+# For example Gene1:Amplicon1, Gene1:Amplicon2, Gene2:Amplicon1,
+# Gene2:Amplicon2, Gene3:Amplicon1 ...
 ampliconNames <- NULL
 
 @
@@ -212,7 +222,7 @@ ampliconNames <- NULL
 
 To account for sample and sequencing run specific variations the counts
 obtained for each sample were normalized using a wrapper function around
-the normalization from the \textbf{cn.mops} package.
+the \textbf{tmm} normalization function from the \textbf{NOISeq} package.
 <<NormalizedReadCounts, echo = TRUE>>=
 
 normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
@@ -227,21 +237,32 @@ referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
 
 \subsection{Bootstrap based CNV}
 
-This aproach is similar to the Random forest or Random k-nearest neighbour
-methodologies, which bootstrap the samples and subsample the features. In
-our case features would be equivalent to amplicons. The subsampling procedure
-is repeated n times to generate a large set of randomized synthetic references
-$B = b_1,\ldots,b_n$ by selecting with replacement (boostrapping) from the set
-of reference samples. The ratio between the sample of interest and each
-randomized reference is calculated for each gene, using only a subset of the
-amplicons associated with each gene. A change is considered as significant if
-the the finding was deemed significant a q50 > 1.5 can be considered an
-amplification while for q50 < 0.5 we assume a deletion.
+This aproach is similar to the Random Forest method, which bootstrap the
+samples and subsample the features. In our case features would be equivalent to
+amplicons. The subsampling procedure is repeated n times to generate a large
+set of randomized synthetic references $B = b_1,\ldots,b_n$ by selecting with
+replacement (bootstrapping) from the set of reference samples. The ratio
+between the sample of interest and each randomized reference is calculated for
+each gene, using only a randomly selected subset of amplicons. To get an
+estimate of significance, the 95 percent confidence interval of the
+bootstrapping/subsampling ratio distribution was calculated. A significant
+change is considered as an amplification for a lower bound ratio > 1 and a
+deletion for an upper bound ratio < 1. The confidence interval was calculated
+using the 0.025 and 0.975 percent quantiles of the bootstrapping/subsampling
+ratio distribution.
 
-<<BootList, echo = TRUE,message=FALSE,warning=FALSE>>=
+<<NumberOfReplicates, echo = TRUE,message=FALSE,warning=FALSE>>=
 
 # Number of bootstrap replicates to be used
+replicates <- 10000
+@
+
+<<RealNumberOfReplicatesToBeUsed, echo = FALSE>>=
+# To speed up vignette generation...
 replicates <- 10
+@
+
+<<BootList, echo = TRUE,message=FALSE,warning=FALSE>>=
 
 # Perform the bootstrap based analysis
 bootList <- BootList(geneNames,
@@ -261,7 +282,7 @@ significant changes in observed read counts. While normalization makes the
 comparison of read counts comparable between samples, genes with a small number
 of amplicons might still show a bias. To quantify the effect of a low number of
 amplicons on the calling of CNVs we introduced a background noise estimation
-procedure. Using the ratio between the median reference and the sample used for
+procedure. Using the ratio between the mean reference and the sample used for
 calling we subsample for each unique number of amplicons. In the case of two
 amplicons we repeatedly sample two random amplicons from the set of all
 amplicons, and average the ratios. Amplicons that belong to genes showing
@@ -269,13 +290,13 @@ significant copy number variations $G_{sig}$ are not included in the
 subsampling pool.
 Each amplicon is weighted according to the number of amplicons the respective
 gene has $w_A = \frac{1}{|A_g|}$. Thus the probablity of sampling from a gene
-is the same regardless of the number amplicons. For each number of amplicons
-a background noise distribution is estimated. The reported background  is
-defined by the lower noise  $medianNoise - sensitivityConstant * 
-standardDeviationNoise$ and the upper noise $medianNoise + sensitivityConstant
-* standardDeviationNoise$ of the respective distribution. For each unique
-number of amplicons per gene we run a sampling based approach to estimate the
-background noise after normalization.
+is the same regardless of the number amplicons. For each number of amplicons a
+background noise distribution is estimated. The reported background is defined
+by the lower noise $meanNoise + qnorm(0.025) * standardDeviationNoise$ and
+the upper noise $meanNoise + qnorm(0.975) * standardDeviationNoise$ of the
+respective distribution. The upper bound ratio has to be below the lower noise
+(deletion) or the lower bound ratio above the upper noise (amplification) to be
+considered reliable.
 
 <<BackgroundNoise, echo = TRUE>>=
 
@@ -295,10 +316,9 @@ variations.
 
 \subsubsection{Report}
 
-The report includes a barplot with the bootstrap distribution for each gene.
+The report describes the bootstrap distribution for each gene.
 An example can be found in figure~\ref{fig:reportTable}. The final report is
-genewise, and is based on the bootstrapping. It reports how often the ratio
-was above/below a certain value: i.e 70
+genewise, and is based on the bootstrapping.
 
 <<ReportTables, echo=TRUE, message=FALSE, warning=FALSE>>=
 # Build report tables
@@ -330,7 +350,7 @@ numberOfGenesViewport = 15
 #reportTables[[1]][1:numberOfGenes, ]
 
 # index of the sample to show
-sampleIndexToShow = 4
+sampleIndexToShow = 2
 
 reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, ]
 @
@@ -341,17 +361,21 @@ reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, ]
 
   \begin{table}[h]
     \begin{tabular}{| l | p{15cm} |} \hline
-    Median Ratio & The median amplicon ratio between reference and sample
+    Mean Ratio & The mean amplicon ratio between reference and sample
     of interest for the gene\\ \hline
-    Up | Down & Percentage of how often the bootstrap ratio is
-    above|below 1.5 \\ \hline
-    5\% | 50\% | 95\% Quantile & The quantiles of the bootstrap
-    distribution\\ \hline
-    Lower | Median | Upper Background Noise bound & The Median and the
-    Lower/Upper background noise bounds. \\ \hline
+%    LBBtp | MeanBtp | UBBtp Ratio & The Lower, Mean and Upper bounds of the
+%    Bootstrap Ratio distribution. \\ \hline
+
+    LowerBoundBoot | MeanBoot | UpperBoundBoot & The confidence interval of the
+    Bootstrap distribution. \\ \hline
+
+%    5\% | 50\% | 95\% Quantile & The quantiles of the bootstrap
+%    distribution\\ \hline
+    Lower | Mean | Upper Noise & The Lower/Mean/Upper background
+    noise bounds. \\ \hline
     Signif. & Boolean value representing if read counts
     differences are Significant \\ \hline
-    AboveNoise & Boolean value representing if median ratio is
+    AboveNoise & Boolean value representing if mean ratio is
     above noise \\ \hline
     Amplicons & Number of Amplicons associated with the gene \\ \hline
     Passed & if both  Signif. and AboveNoise are TRUE then 2, if only one
@@ -415,7 +439,6 @@ PlotBootstrapDistributions(bootList, reportTables)
 \begin{landscape}
 
 <<BootstrapPlot, echo=F, fig.align='center', fig.cap='Plot for a single test sample', fig.height=4, fig.width=10>>=
-sampleIndexToShow <- 4
 PlotBootstrapDistributions(bootList, reportTables)[[sampleIndexToShow]]
 @
 
@@ -423,17 +446,14 @@ PlotBootstrapDistributions(bootList, reportTables)[[sampleIndexToShow]]
   \centering
     \begin{tabular}{| l | p{15cm} |} \hline
     No Change & There is no change in the read count \\ \hline
-    Non Reliable Change & There is some change but is below the
-    noise level, but not significant\\ \hline
+    Non Reliable Change & The change is significant but
+    below the noise level for the number of amplicons associated with this gene\\ \hline
     Reliable Change & The change is above the noise
     level and significant \\ \hline
     \end{tabular}
   \label{table:plotLabelDescription}
   \caption{Description of the CNV detection levels}
 \end{table}
-
-
-
 
 % 
 % \begin{center}

@@ -4,7 +4,7 @@
   CombinedNormalizedCounts
 }
 \description{
-    This function makes use of cn.mops::normalizeChromosomes to normalize
+    This function makes use of NOISeq::tmm to normalize
     the read counts of all samples and references to the same median read count
 }
 \usage{
@@ -15,24 +15,24 @@
 %- maybe also 'usage' for other objects documented here.
 \arguments{
     \item{sampleCounts}{
-         Matrix  with sample read counts (rows: amplicons, columns: samples)
+         Matrix or vector with sample read counts (rows: amplicons, columns: samples)
     }
     \item{referenceCounts}{
         Matrix with reference read counts (rows: amplicons, columns: samples)
     }
     \item{ampliconNames}{
-        A vector with the amplicon names for the ref. and sample matrices
+        A vector with  amplicon defining names for the reference and sample matrices
     }
 }
 
 \value{
-A list object with matrix
+A list object with  two matrices
 \item{samples}{The samples matrix normalized}
 \item{reference}{The reference matrix normalized}
 }
 
 \author{
-  Thomas Wolf, Cristiano Oliveira
+  Cristiano Oliveira, Thomas Wolf
 }
 
 \examples{
