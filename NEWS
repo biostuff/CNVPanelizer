@@ -1,9 +1,13 @@
-
-CHANGES IN VERSION 0.99.7
-
+CHANGES IN VERSION 0.99.8
 -----------------------
 
-        o Improvements for sensitivity
+	o Small fix for bioconductor submission
+
+
+CHANGES IN VERSION 0.99.7
+-----------------------
+
+        o Specificity improvements
 
 BUG FIXES
 
