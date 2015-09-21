@@ -258,8 +258,8 @@ replicates <- 10000
 @
 
 <<RealNumberOfReplicatesToBeUsed, echo = FALSE>>=
-# To speed up vignette generation...
-replicates <- 10
+# To speed up vignette generation while debugging
+#replicates <- 10
 @
 
 <<BootList, echo = TRUE,message=FALSE,warning=FALSE>>=
