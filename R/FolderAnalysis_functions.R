@@ -394,7 +394,7 @@ ReportTables <- function(geneNames,
   # calculate the ratio matrix for each sample
   ratioMatrix <- RatioMatrix(samplesNormalizedReadCounts, refMean)
   # calculate the genewise ratio matrix from the ratio_mat
-  ratioMatGene <- GeneMeanRatioMatrix(genesPositionsIndex, ratioMatrix)
+  ratioMatGene <- as.matrix(GeneMeanRatioMatrix(genesPositionsIndex, ratioMatrix))
   sigList <- CheckSignificance(bootList)
   # because package generaton complains..
   i <- NULL
@@ -556,13 +556,17 @@ PlotBootstrapDistributions  <- function(bootList,
                                         sampleNames = NULL,
                                         save = FALSE,
                                         scale = 7) {
-  i <- NULL
-  plotList <- foreach(i = seq_along(bootList)) %do% {
-    selSample <- i
+  selSample <- NULL
+  plotList <- foreach(selSample = seq_along(bootList)) %do% {
     test <- as.factor(reportTables[[selSample]][, "Passed"])
-    suppressMessages(test <- revalue(test, c(`0` = "noChange",
-                                             `1` = "nonReliableChange",
-                                             `2` = "ReliableChange")))
+
+  levelLabels <- c("noChange", "nonReliableChange", "ReliableChange")
+  names(levelLabels) <- c(0, 1, 2)
+  test <- revalue(test, levelLabels)
+#  test <- suppressMessages(revalue(test, levelLabels))
+  namedcolors <- c("#56B4E9", "#CC79A7" ,"#D55E00")
+  names(namedcolors) <- levelLabels
+
     ratios <- NULL
     testsPassed <- NULL
     df <- data.frame(class = as.factor(colnames(bootList[[selSample]])),
@@ -583,7 +587,7 @@ PlotBootstrapDistributions  <- function(bootList,
     if(is.null(sampleNames)) {
       filename <- names(bootList[selSample])
     } else {
-      filename <- sampleNames[selSample] 
+      filename <- sampleNames[selSample]
     }
     test <- ggplot(df, aes(x = class, y = log2(ratios), fill = testsPassed)) +
       geom_violin() + ggtitle(filename) +
@@ -591,7 +595,7 @@ PlotBootstrapDistributions  <- function(bootList,
             text = element_text(size = 15),
             axis.text.x = element_text(angle = 90)) +
       scale_fill_manual(name = "CNV Reliability",
-                        values = c("#56B4E9", "#CC79A7" ,"#D55E00"),
+                        values = namedcolors,
                         labels = c("0" = "Foo", "1" = "Bar")) +
       coord_cartesian(ylim = ylim1) +
       theme(axis.text=element_text(size=10),
@@ -599,7 +603,7 @@ PlotBootstrapDistributions  <- function(bootList,
       scale_x_discrete("Gene Names") +
       #       geom_hline(yintercept=log2(1.5), color="#009E73") +
       #       geom_hline(yintercept=log2(0.5), color="#009E73") +
-      geom_hline(yintercept=0, color="#009E73") 
+      geom_hline(yintercept=0, color="#009E73")
 
     if(save == TRUE) {
       dir.create(outputFolder, recursive = TRUE, showWarnings = FALSE)
@@ -614,4 +618,3 @@ PlotBootstrapDistributions  <- function(bootList,
   }
   return(plotList)
 }
-
