@@ -12,13 +12,13 @@ test.bootList <- function() {
     sampleReadCounts <- matrix(1:kNumberOfReferenceMatrixLines)
 
     colnames(sampleReadCounts) <- paste0("c:/somefile", 1, ".bam")
-    
+
     # amplicons indexes for each gene
     genesPositionsIndex = list("gene_1" = c(1),
                                "gene_2" = c(2, 3, 4))
-    
+
     geneNames <- c("GENE1",rep("GENE2",3))
-    
+
     set.seed(1)
     kNumberOfReplicates <- 1
     bootList = BootList(geneNames,

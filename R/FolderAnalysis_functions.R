@@ -285,7 +285,7 @@ BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
   return(bootListSamples)
 }
 
-#calculate significance 
+#calculate significance
 CheckSignificance <- function(bootList, significanceLevel = 0.05) {
   margin <- significanceLevel/2
   # package check complains
@@ -301,8 +301,11 @@ CheckSignificance <- function(bootList, significanceLevel = 0.05) {
       maybeAmplification <- roundedBounds[1] > 1
       maybeDeletion <- roundedBounds[3] < 1
       roundedSignificant <- maybeAmplification | maybeDeletion
-      c(roundedBounds, roundedSignificant)
+      sigTable <- c(roundedBounds, roundedSignificant)
+      names(sigTable)  <- c("lowerBound", "mean", "upperBound", "isSig")
+      sigTable
     }
+  names(sigTables) <- names(bootList)
   return(sigTables)
 }
 
@@ -399,17 +402,16 @@ ReportTables <- function(geneNames,
   # because package generaton complains..
   i <- NULL
   reportTables <- foreach(i = seq_along(backgroundReport)) %do% {
-    isSig <- (sigList[[i]][, 3] < 1) | (sigList[[i]][, 1] > 1)
+    isSig <- (sigList[[i]][, "upperBound"] < 1) | (sigList[[i]][, "lowerBound"] > 1)
     backgroundUp <- backgroundReport[[i]][, 3]
     backgroundDown <- backgroundReport[[i]][, 1]
     rMatGene <- ratioMatGene[, i]
-    aboveNoise <- (rMatGene > 1 & sigList[[i]][, 1] > backgroundUp) |
-      (rMatGene < 1 &
-         sigList[[i]][, 3] < backgroundDown)
+    aboveNoise <- (rMatGene > 1 & sigList[[i]][, "lowerBound"] > backgroundUp) |
+                  (rMatGene < 1 & sigList[[i]][, "upperBound"] < backgroundDown)
     dfTemp <- data.frame(meanRatio = ratioMatGene[, i],
-                         lowerBoundBootstrapRatio = sigList[[i]][, 1],
-                         meanBootstrapRatio = sigList[[i]][, 2],
-                         upperBoundBootstrapRatio = sigList[[i]][, 3],
+                         lowerBoundBootstrapRatio = sigList[[i]][, "lowerBound"],
+                         meanBootstrapRatio = sigList[[i]][, "mean"],
+                         upperBoundBootstrapRatio = sigList[[i]][, "upperBound"],
                          lowerNoise = backgroundReport[[i]][, 1],
                          meanNoise = backgroundReport[[i]][, 2],
                          upperNoise = backgroundReport[[i]][, 3],
@@ -433,7 +435,7 @@ ReportTables <- function(geneNames,
                        "Passed")
     dfTemp
   }
-  names(reportTables) <- seq_along(reportTables)
+  names(reportTables) <- colnames(samplesNormalizedReadCounts)
   return(reportTables)
 }
 
@@ -516,6 +518,7 @@ SampleNoiseGenes <- function(numAmpl = 2,
   #upperBound <- ci$bca[5]
   #specificityLevel <- 2
 
+  
   lowerBound <- meanNoise +  qnorm(margin) * sdNoise
   upperBound <- meanNoise + qnorm(1 - margin) * sdNoise
 
@@ -560,7 +563,7 @@ PlotBootstrapDistributions  <- function(bootList,
   plotList <- foreach(selSample = seq_along(bootList)) %do% {
     test <- as.factor(reportTables[[selSample]][, "Passed"])
 
-  levelLabels <- c("noChange", "nonReliableChange", "ReliableChange")
+  levelLabels <- c("NoChange", "NonReliableChange", "ReliableChange")
   names(levelLabels) <- c(0, 1, 2)
   test <- revalue(test, levelLabels)
 #  test <- suppressMessages(revalue(test, levelLabels))
