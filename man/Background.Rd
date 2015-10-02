@@ -15,7 +15,7 @@ Background(geneNames,
            referenceNormalizedReadCounts,
            bootList,
            replicates = 1000,
-           significanceLevel = 0.1)
+           significanceLevel = 0.05)
 }
 \arguments{
   \item{geneNames}{
@@ -36,7 +36,6 @@ Background(geneNames,
 }
   \item{significanceLevel}{
     the significance level for the calculated confidence interval
-    (for a higher specificity set to 0.05)
 }
 }
 
@@ -82,6 +81,7 @@ background <- Background(geneNames,
                         samplesNormalizedReadCounts,
                         referenceNormalizedReadCounts,
                         bootList,
-                        replicates = replicates)
+                        replicates = replicates,
+                        significanceLevel = 0.1)
 }
 

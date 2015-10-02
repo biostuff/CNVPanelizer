@@ -289,7 +289,7 @@ BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
 }
 
 #calculate significance
-CheckSignificance <- function(bootList, significanceLevel = 0.1) {
+CheckSignificance <- function(bootList, significanceLevel = 0.05) {
   margin <- significanceLevel/2
   # package check complains
   i <- NULL
@@ -353,7 +353,7 @@ Background <- function(geneNames,
                        referenceNormalizedReadCounts,
                        bootList,
                        replicates = 1000,
-                       significanceLevel = 0.1) {
+                       significanceLevel = 0.05) {
 
   #which genes showed significant changes
   sigList <- CheckSignificance(bootList)
@@ -507,7 +507,7 @@ SampleNoiseGenes <- function(numAmpl = 2,
                              ratios,
                              replicates = 100,
                              probs = NULL,
-                             significanceLevel = 0.1) {
+                             significanceLevel = 0.05) {
   margin <- significanceLevel / 2
   # now repeat the sampling for the selected number of
   # amplicons replicates
@@ -542,7 +542,7 @@ IterateAmplNum <- function(uniqueAmpliconNumbers,
                            ratios,
                            replicates = 100,
                            probs = NULL,
-                           significanceLevel = 0.1) {
+                           significanceLevel = 0.05) {
 
   # Needed because of package check complaints..
   i <- NULL
