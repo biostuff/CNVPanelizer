@@ -29,9 +29,12 @@ test.bootList <- function() {
     resultForGENE1 <- bootList[[1]]["GENE1"][[1]]
     resultForGENE2 <- bootList[[1]]["GENE2"][[1]]
 
+    print(paste("GENE 1: " , resultForGENE1))
+    print(paste("GENE 2: " , resultForGENE2))
+
     tolerance <- 0.0001
     checkEquals(resultForGENE1, 0.125, tolerance = tolerance)
-    checkEquals(resultForGENE2, 0.3318182, tolerance = tolerance)
+    checkEquals(resultForGENE2, 0.3302891, tolerance = tolerance)
 }
 
 test.ReportTablesWithSingleSample <- function() {
@@ -98,9 +101,9 @@ s1 s2 s3 s4
 gene1_1 2 5 2 1
 gene2_1 2 2 2 4
 gene2_2 2 3 2 4
-gene3_1 1 4 4 6
-gene3_2 2 5 4 6
-gene3_3 1 6 4 6
+gene3_1 2 4 3 6
+gene3_2 2 5 2 6
+gene3_3 1 6 2 6
 "))
 
   ampliconNames <- rownames(sampleReadCounts)
@@ -114,12 +117,12 @@ gene3_3 1 6 4 6
                       sampleReadCounts,
                       referenceReadCounts,
                       replicates = kNumberOfReplicates)
-  
+
   normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts, referenceReadCounts)
-  
+
   samplesNormalizedReadCounts = normalizedReadCounts["samples"][[1]]
   referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
-  
+
   backgroundNoise <- Background(geneNames,
                                 samplesNormalizedReadCounts,
                                 referenceNormalizedReadCounts,

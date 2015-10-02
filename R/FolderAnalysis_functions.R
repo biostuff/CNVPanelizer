@@ -91,6 +91,9 @@ ReadCountsFromBam <- function(bamFilenames,
 CombinedNormalizedCounts <- function (sampleCounts,
                                       referenceCounts,
                                       ampliconNames = NULL) {
+  sampleCounts <- as.matrix(sampleCounts)
+  referenceCounts <- as.matrix(referenceCounts)
+
   allCounts <- cbind(sampleCounts, referenceCounts)
   classes <- rep(c("samples", "reference"),
                  c(ncol(sampleCounts), ncol(referenceCounts)))
@@ -200,7 +203,7 @@ SubsamplingPositions <- function(pos, mtry = round(sqrt(length(pos)))) {
 
 #calculates the mean from a vector given specific positions
 PositionMean <- function(positon, vector) {
-  return(mean(vector[positon]))
+  return(exp(mean(log(vector[positon]))))
 }
 
 #calculate the mean for each gene
@@ -286,14 +289,14 @@ BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
 }
 
 #calculate significance
-CheckSignificance <- function(bootList, significanceLevel = 0.05) {
+CheckSignificance <- function(bootList, significanceLevel = 0.1) {
   margin <- significanceLevel/2
   # package check complains
   i <- NULL
   j <- NULL
   sigTables =  foreach(i = seq_along(bootList)) %:%
     foreach(j = 1:ncol(bootList[[i]]), .combine = rbind) %do% {
-      meanNoise <- mean(bootList[[i]][,j])
+      meanNoise <- exp(mean(log(bootList[[i]][,j])))
       lowerBound <- quantile(bootList[[i]][,j], margin, type = 1)
       upperBound <- quantile(bootList[[i]][,j], 1 - margin, type = 1)
       bounds <- c(lowerBound, meanNoise, upperBound)
@@ -313,7 +316,7 @@ SignificantGenes <- function(sigList, genesPositionsIndex) {
   # package check complains
   i <- NULL
   sigGenes = foreach(i = seq_along(sigList)) %do% {
-    names(genesPositionsIndex)[sigList[[i]][, 3] == 1]
+    names(genesPositionsIndex)[sigList[[i]][, "isSig"] == TRUE]
   }
   return(sigGenes)
 }
@@ -325,8 +328,13 @@ NonSignificantGeneIndex <- function(sigList, genesPositionsIndex) {
   # package check complains
   i <- NULL
   genePosNonSig = foreach(i = seq_along(sigList)) %do% {
-    sigGenes = names(genesPositionsIndex)[sigList[[i]][, 3] == 1]
-    RemSigGenes(genesPositionsIndex, sigGenes)
+    sigGenes = names(genesPositionsIndex)[sigList[[i]][, "isSig"] == TRUE]
+    selectedIndex <- RemSigGenes(genesPositionsIndex, sigGenes)
+    if (length(selectedIndex) == 0) {
+      genesPositionsIndex
+    } else {
+      selectedIndex
+    }
   }
   return(genePosNonSig)
 }
@@ -344,7 +352,8 @@ Background <- function(geneNames,
                        samplesNormalizedReadCounts,
                        referenceNormalizedReadCounts,
                        bootList,
-                       replicates = 1000) {
+                       replicates = 1000,
+                       significanceLevel = 0.1) {
 
   #which genes showed significant changes
   sigList <- CheckSignificance(bootList)
@@ -366,7 +375,8 @@ Background <- function(geneNames,
     IterateAmplNum(uniqueAmpliconNumbers,
                    ratioMatrix[unlist(genesPosNonSig[[i]]), i],
                    replicates = replicates,
-                   probs = amplWeights[[i]])
+                   probs = amplWeights[[i]],
+                   significanceLevel = significanceLevel)
   }
   return(backgroundObject)
 }
@@ -480,9 +490,16 @@ RatioMatrix <- function(sampleMat, refMean) {
 }
 
 SampleRatio <- function(ratios, numAmpl, amplWeights = NULL) {
-  randomPos = sample(seq_along(ratios),numAmpl,prob = amplWeights)
+  replace <- FALSE
+  if(numAmpl >= length(ratios)) {
+    replace <- TRUE
+  }
+  randomPos = sample(seq_along(ratios),
+                     numAmpl,
+                     prob = amplWeights,
+                     replace = replace)
   randomlySelectedRatios = ratios[randomPos]
-  randomMean = mean(randomlySelectedRatios)
+  randomMean = exp(mean(log(randomlySelectedRatios)))
   return(randomMean)
 }
 
@@ -490,7 +507,7 @@ SampleNoiseGenes <- function(numAmpl = 2,
                              ratios,
                              replicates = 100,
                              probs = NULL,
-                             significanceLevel = 0.05) {
+                             significanceLevel = 0.1) {
   margin <- significanceLevel / 2
   # now repeat the sampling for the selected number of
   # amplicons replicates
@@ -499,28 +516,13 @@ SampleNoiseGenes <- function(numAmpl = 2,
                                                   numAmpl,
                                                   amplWeights = probs))
   #get the upper, mean and lower values of the noise distribution
-  meanNoise <- mean(sampleNoiseDistribution)
-  sdNoise <- sd(sampleNoiseDistribution)
-
-  #define a mean function that accepts an index for boot
-  #mean.fun <- function(dat, idx) mean(dat[idx], na.rm = TRUE)
-  #perform the bootstrapping
-  #bootOut <- boot(sampleNoiseDistribution,
-  #                 mean.fun,
-  #                 R=replicates,
-  #                 sim="ordinary")
-  #calculate the confidence interval
-  #ci <- boot.ci(bootOut, conf = specificityLevel,
-  #              type = "bca")
-  #get the lower bound
-  #lowerBound <- ci$bca[4]
-  #get the upper bound
-  #upperBound <- ci$bca[5]
-  #specificityLevel <- 2
-
+  logSampleNoiseDistribution <- log(sampleNoiseDistribution)
+  logMeanNoise <- mean(logSampleNoiseDistribution)
+  logSdNoise <- sd(logSampleNoiseDistribution)
   
-  lowerBound <- meanNoise +  qnorm(margin) * sdNoise
-  upperBound <- meanNoise + qnorm(1 - margin) * sdNoise
+  lowerBound <- exp(logMeanNoise + qnorm(margin) * logSdNoise)
+  meanNoise <- exp(logMeanNoise)
+  upperBound <- exp(logMeanNoise + qnorm(1 - margin) * logSdNoise)
 
   sampledNoise = c(lowerBound, meanNoise, upperBound)
   names(sampledNoise) = paste0(c("Lower", "Mean", "Upper"), "Noise")
@@ -539,14 +541,17 @@ NumberOfUniqueAmplicons <- function(genesPos) {
 IterateAmplNum <- function(uniqueAmpliconNumbers,
                            ratios,
                            replicates = 100,
-                           probs = NULL) {
+                           probs = NULL,
+                           significanceLevel = 0.1) {
+
   # Needed because of package check complaints..
   i <- NULL
   noiseResults = foreach(i = seq_along(uniqueAmpliconNumbers)) %do% {
     sampledNoise = SampleNoiseGenes(uniqueAmpliconNumbers[i],
                                     ratios = ratios,
                                     replicates = replicates,
-                                    probs = probs)
+                                    probs = probs,
+                                    significanceLevel = significanceLevel)
     sampledNoise
   }
   names(noiseResults) = as.character(uniqueAmpliconNumbers)

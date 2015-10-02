@@ -14,7 +14,8 @@ Background(geneNames,
            samplesNormalizedReadCounts,
            referenceNormalizedReadCounts,
            bootList,
-           replicates = 1000)
+           replicates = 1000,
+           significanceLevel = 0.1)
 }
 \arguments{
   \item{geneNames}{
@@ -32,6 +33,10 @@ Background(geneNames,
 }
   \item{replicates}{
     an integer number of how many replicates should be performed
+}
+  \item{significanceLevel}{
+    the significance level for the calculated confidence interval
+    (for a higher specificity set to 0.05)
 }
 }
 
