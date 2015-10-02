@@ -294,9 +294,11 @@ is the same regardless of the number amplicons. For each number of amplicons a
 background noise distribution is estimated. The reported background is defined
 by the lower noise $meanNoise + qnorm(0.025) * standardDeviationNoise$ and
 the upper noise $meanNoise + qnorm(0.975) * standardDeviationNoise$ of the
-respective distribution. The upper bound ratio has to be below the lower noise
-(deletion) or the lower bound ratio above the upper noise (amplification) to be
-considered reliable.
+respective distribution. To calculate the mean and standard deviation
+of ratios the log ratios were used. The upper bound ratio has to be
+below the lower noise (deletion) or the lower bound ratio above the upper
+noise (amplification) to be considered reliable. The significance level can
+also be passed as parameter.
 
 <<BackgroundNoise, echo = TRUE>>=
 
@@ -304,8 +306,9 @@ considered reliable.
 backgroundNoise <- Background(geneNames,
                               samplesNormalizedReadCounts,
                               referenceNormalizedReadCounts,
-                              bootList,                              
-                              replicates = replicates)
+                              bootList,
+                              replicates = replicates,
+                              significanceLevel = 0.1)
 @
 
 \subsection{Results}
@@ -438,7 +441,7 @@ PlotBootstrapDistributions(bootList, reportTables)
 
 \begin{landscape}
 
-<<BootstrapPlot, echo=F, fig.align='center', fig.cap='Plot for a single test sample', fig.height=4, fig.width=10>>=
+<<BootstrapPlot, echo=F, fig.align='center', fig.cap='Plot for a single test sample', fig.height=4, fig.width=10, message=FALSE, warning=FALSE>>=
 PlotBootstrapDistributions(bootList, reportTables)[[sampleIndexToShow]]
 @
 
