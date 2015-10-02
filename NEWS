@@ -1,3 +1,25 @@
+CHANGES IN VERSION 0.99.11
+-----------------------
+
+	o Calculate statistics base on ratio log transformation
+
+
+CHANGES IN VERSION 0.99.10
+-----------------------
+
+	o Fix plotting and single sample bugs
+
+
+CHANGES IN VERSION 0.99.9
+-----------------------
+
+	o Add fix for inconsistencies
+
+	o Remove CheckSignificance documentation for function not available
+	o Fix for vignette plot inconsistency bootstrap count
+	o Increment version number
+
+
 CHANGES IN VERSION 0.99.8
 -----------------------
 
