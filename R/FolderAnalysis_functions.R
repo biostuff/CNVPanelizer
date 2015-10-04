@@ -353,7 +353,8 @@ Background <- function(geneNames,
                        referenceNormalizedReadCounts,
                        bootList,
                        replicates = 1000,
-                       significanceLevel = 0.05) {
+                       significanceLevel = 0.05,
+                       robust = FALSE) {
 
   #which genes showed significant changes
   sigList <- CheckSignificance(bootList)
@@ -376,7 +377,8 @@ Background <- function(geneNames,
                    ratioMatrix[unlist(genesPosNonSig[[i]]), i],
                    replicates = replicates,
                    probs = amplWeights[[i]],
-                   significanceLevel = significanceLevel)
+                   significanceLevel = significanceLevel,
+                   robust = robust)
   }
   return(backgroundObject)
 }
@@ -507,7 +509,8 @@ SampleNoiseGenes <- function(numAmpl = 2,
                              ratios,
                              replicates = 100,
                              probs = NULL,
-                             significanceLevel = 0.05) {
+                             significanceLevel = 0.05,
+                             robust = FALSE) {
   margin <- significanceLevel / 2
   # now repeat the sampling for the selected number of
   # amplicons replicates
@@ -517,9 +520,15 @@ SampleNoiseGenes <- function(numAmpl = 2,
                                                   amplWeights = probs))
   #get the upper, mean and lower values of the noise distribution
   logSampleNoiseDistribution <- log(sampleNoiseDistribution)
-  logMeanNoise <- mean(logSampleNoiseDistribution)
-  logSdNoise <- sd(logSampleNoiseDistribution)
   
+  if (robust) {
+    logMeanNoise <- median(logSampleNoiseDistribution)
+    logSdNoise <- mad(logSampleNoiseDistribution, constant = 1)
+  } else {
+    logMeanNoise <- mean(logSampleNoiseDistribution)
+    logSdNoise <- sd(logSampleNoiseDistribution)
+  }
+
   lowerBound <- exp(logMeanNoise + qnorm(margin) * logSdNoise)
   meanNoise <- exp(logMeanNoise)
   upperBound <- exp(logMeanNoise + qnorm(1 - margin) * logSdNoise)
@@ -542,8 +551,8 @@ IterateAmplNum <- function(uniqueAmpliconNumbers,
                            ratios,
                            replicates = 100,
                            probs = NULL,
-                           significanceLevel = 0.05) {
-
+                           significanceLevel = 0.05,
+                           robust = FALSE) {
   # Needed because of package check complaints..
   i <- NULL
   noiseResults = foreach(i = seq_along(uniqueAmpliconNumbers)) %do% {
@@ -551,7 +560,8 @@ IterateAmplNum <- function(uniqueAmpliconNumbers,
                                     ratios = ratios,
                                     replicates = replicates,
                                     probs = probs,
-                                    significanceLevel = significanceLevel)
+                                    significanceLevel = significanceLevel,
+                                    robust = robust)
     sampledNoise
   }
   names(noiseResults) = as.character(uniqueAmpliconNumbers)
@@ -570,8 +580,7 @@ PlotBootstrapDistributions  <- function(bootList,
 
   levelLabels <- c("NoChange", "NonReliableChange", "ReliableChange")
   names(levelLabels) <- c(0, 1, 2)
-  test <- revalue(test, levelLabels)
-#  test <- suppressMessages(revalue(test, levelLabels))
+  test <- suppressMessages(revalue(test, levelLabels))
   namedcolors <- c("#56B4E9", "#CC79A7" ,"#D55E00")
   names(namedcolors) <- levelLabels
 
