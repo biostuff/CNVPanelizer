@@ -237,8 +237,8 @@ referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
 
 \subsection{Bootstrap based CNV}
 
-This aproach is similar to the Random Forest method, which bootstrap the
-samples and subsample the features. In our case features would be equivalent to
+This aproach is similar to the Random Forest method, which bootstraps the
+samples and subsamples the features. In our case features would be equivalent to
 amplicons. The subsampling procedure is repeated n times to generate a large
 set of randomized synthetic references $B = b_1,\ldots,b_n$ by selecting with
 replacement (bootstrapping) from the set of reference samples. The ratio
@@ -294,11 +294,16 @@ is the same regardless of the number amplicons. For each number of amplicons a
 background noise distribution is estimated. The reported background is defined
 by the lower noise $meanNoise + qnorm(0.025) * standardDeviationNoise$ and
 the upper noise $meanNoise + qnorm(0.975) * standardDeviationNoise$ of the
-respective distribution. To calculate the mean and standard deviation
-of ratios the log ratios were used. The upper bound ratio has to be
-below the lower noise (deletion) or the lower bound ratio above the upper
-noise (amplification) to be considered reliable. The significance level can
-also be passed as parameter.
+respective distribution. This defines the 95 percent confidence interval.
+The significance level can also be passed as parameter.
+Less conservative detection can be achieved by setting the
+significanceLevel = 0.1.
+To calculate the mean and standard deviation (sd) of ratios the log ratios
+were used.
+If setting robust = TRUE, median is used instead of mean and
+mad (median absolute deviation) replaces sd. The upper bound ratio has to be
+below the lower noise (deletion) or the lower bound ratio above the upper noise
+(amplification) to be considered reliable.
 
 <<BackgroundNoise, echo = TRUE>>=
 
@@ -308,7 +313,8 @@ backgroundNoise <- Background(geneNames,
                               referenceNormalizedReadCounts,
                               bootList,
                               replicates = replicates,
-                              significanceLevel = 0.1)
+                              significanceLevel = 0.1,
+                              robust = TRUE)
 @
 
 \subsection{Results}
@@ -343,7 +349,7 @@ table for a single sample.
 <<ReportTablesToShow, echo=FALSE, message=FALSE, warning=FALSE>>=
 options(width=500)  # to show the entire table..
 # to avoid have to print to other page..
-numberOfGenesViewport = 15
+numberOfGenesViewport = 20
 
 #if (nrow(reportTables[[1]]) > numberOfGenes) {
 #  numberOfGenes = numberOfGenesViewport
@@ -378,8 +384,8 @@ reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, ]
     noise bounds. \\ \hline
     Signif. & Boolean value representing if read counts
     differences are Significant \\ \hline
-    AboveNoise & Boolean value representing if mean ratio is
-    above noise \\ \hline
+    AboveNoise & Boolean value representing if LowerBoundBoot is
+    above UpperNoise (UpperBoundBoot below LowerNoise) \\ \hline
     Amplicons & Number of Amplicons associated with the gene \\ \hline
     Passed & if both  Signif. and AboveNoise are TRUE then 2, if only one
     is TRUE then 1 and if both are FALSE then 0 \\ \hline

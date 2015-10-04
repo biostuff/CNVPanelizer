@@ -15,7 +15,8 @@ Background(geneNames,
            referenceNormalizedReadCounts,
            bootList,
            replicates = 1000,
-           significanceLevel = 0.05)
+           significanceLevel = 0.05,
+           robust = FALSE)
 }
 \arguments{
   \item{geneNames}{
@@ -35,7 +36,11 @@ Background(geneNames,
     an integer number of how many replicates should be performed
 }
   \item{significanceLevel}{
-    the significance level for the calculated confidence interval
+    The significance level for the calculated confidence interval
+}
+  \item{robust}{
+    If set to true the confidence interval is calculated replacing mean
+    with median and sd with mad.
 }
 }
 
