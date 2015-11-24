@@ -107,7 +107,9 @@ gene3_3 1 6 2 6
 "))
 
   ampliconNames <- rownames(sampleReadCounts)
-  ampliconNames <- rownames(referenceReadCounts)
+  # it should be the same as they should be generated from the same bed file
+  #ampliconNames <- rownames(referenceReadCounts)
+
   listOfAmpliconNames <- strsplit(ampliconNames, split="_")
   geneNames  <- unlist(listOfAmpliconNames)[ c(TRUE, FALSE) ]
 

@@ -202,8 +202,8 @@ SubsamplingPositions <- function(pos, mtry = round(sqrt(length(pos)))) {
 }
 
 #calculates the mean from a vector given specific positions
-PositionMean <- function(positon, vector) {
-  return(exp(mean(log(vector[positon]))))
+PositionMean <- function(position, vector) {
+  return(exp(mean(log(vector[position]))))
 }
 
 #calculate the mean for each gene
@@ -239,7 +239,7 @@ BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
 
   # a vector and matrix are not the same and for a vector iterating over
   # the column makes no sense so we have
-  # to check if a mtrix or a vector was passed. ncol only works for matrix
+  # to check if a matrix or a vector was passed. ncol only works for matrix
   # not for vector
   if (class(sampleMatrix) == "matrix") {
     iterator <- 1:ncol(sampleMatrix)
@@ -265,7 +265,8 @@ BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
       # sample the samples using bootstrapping
       sampleBootPos <- sample(1:ncol(refmat), ncol(refmat), replace = TRUE)
 
-      geneBootPos <- c(lapply(genesPos, SubsamplingPositions),
+      geneBootPos <- c(lapply(genesPos,
+                              SubsamplingPositions),
                        recursive = TRUE)
 
       # given the obtained sampling using the bootstraps calulated above
