@@ -361,7 +361,11 @@ numberOfGenesViewport = 20
 # index of the sample to show
 sampleIndexToShow = 2
 
-reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, ]
+# TODO improve this.. remove the column..
+# but for now just hide "Signif." column... no space available
+indexToHide <- which(colnames(reportTables[[1]])=="Signif.")
+reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, -c(indexToHide)]
+#reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, ]
 @
 
     \caption{Sample report table.}
@@ -426,9 +430,6 @@ WriteListToXLSX(list(samplesReadCount = samplesNormalizedReadCounts,
                      referenceReadCounts = referenceNormalizedReadCounts),
                 normalizedReadCountsFilepath)
 @
-
-
-
 
 
 <<JustToShowBootPlot, echo = TRUE, eval=FALSE, message=FALSE, warning=FALSE>>=
