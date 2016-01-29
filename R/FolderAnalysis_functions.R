@@ -151,35 +151,18 @@ IndexMultipleBams <- function(bams,
 }
 
 WriteListToXLSX <- function(listOfDataFrames, filepath = "list.xlsx") {
-    sizeOfList <- length(listOfDataFrames)
-    dataFrameNames <- names(listOfDataFrames)
-    index <- 1
-    write.xlsx(listOfDataFrames[[index]],
-                filepath,
-                sheetName = dataFrameNames[index])
-    for(i in seq(sizeOfList - 1)) {
-        index <- i + 1
-        write.xlsx(listOfDataFrames[[index]],
-                    filepath,
-                    sheetName = dataFrameNames[index],
-                    append = TRUE)
-    }
+    write.xlsx(listOfDataFrames, file = filepath, rowNames = TRUE)
 }
 
-ReadXLSXToList <- function(filepath) {
-    return(list(reference = unfactorize(read.xlsx(filepath,
-                                                    header = FALSE,
-                                                    sheetName = "reference")),
-                sample = unfactorize(read.xlsx(filepath,
-                                                    header = FALSE,
-                                                    sheetName = "sample"))))
-}
-
-unfactorize <- function(df) {
-    for(i in which(sapply(df, class) == "factor")) {
-        df[[i]] = as.character(df[[i]])
+ReadXLSXToList <- function(filepath, rowNames = TRUE, colNames = TRUE) {
+    listOfDataFrames <- list()
+    for(name in getSheetNames(filepath)) {
+     listOfDataFrames[[name]] <- read.xlsx(filepath,
+                                           rowNames = rowNames,
+                                           colNames = colNames,
+                                           sheet = name)
     }
-    return(df)
+    return(listOfDataFrames)
 }
 
 ###############################################################################
@@ -234,6 +217,7 @@ ReferenceWeights <- function(refmat, varianceFunction = sd) {
 # define the function to generate bootstrap distributions and
 # return a list with the genewise bootstrapping
 BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
+    enforceDeterministicResult()
     # get the genes positions in the matrix as a list from a gene name vector
     genesPos <- IndexGenesPositions(geneNames)
 
@@ -370,6 +354,10 @@ AmplProbMultipeSamples <- function(genePosNonSig) {
     return(amplWeights)
 }
 
+enforceDeterministicResult <- function() {
+  set.seed(1)
+}
+
 Background <- function(geneNames,
                        samplesNormalizedReadCounts,
                        referenceNormalizedReadCounts,
@@ -377,7 +365,7 @@ Background <- function(geneNames,
                        replicates = 1000,
                        significanceLevel = 0.05,
                        robust = FALSE) {
-
+    enforceDeterministicResult()
     #which genes showed significant changes
     sigList <- CheckSignificance(bootList)
     # gene index
@@ -555,7 +543,7 @@ SampleNoiseGenes <- function(numAmpl = 2,
                                                     amplWeights = probs))
     #get the upper, mean and lower values of the noise distribution
     logSampleNoiseDistribution <- log(sampleNoiseDistribution)
-  
+
     if (robust) {
         logMeanNoise <- median(logSampleNoiseDistribution)
         logSdNoise <- mad(logSampleNoiseDistribution, constant = 1)

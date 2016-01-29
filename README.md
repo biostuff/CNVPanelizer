@@ -14,10 +14,7 @@ when dealing with clinical data.
 ## Installation
 
 You can install the stable version on
-[Bioconductor](http://www.bioconductor)
-<!--
-http://www.bioconductor.org/packages/release/bioc/html/CNVPanelizer.html):
--->
+[Bioconductor](http://www.bioconductor.org/packages/release/bioc/html/CNVPanelizer.html)
 
 ```r
 source("http://bioconductor.org/biocLite.R")
@@ -25,6 +22,13 @@ biocLite("CNVPanelizer")
 
 ```
 
+If you want the latest version, install it directly from GitHub:
+
+```r
+library(devtools)
+install_github("biostuff/CNVPanelizer")
+
+```
 ## Motivation
 
 Targeted sequencing, over the last few years, has become a mainstay in the
