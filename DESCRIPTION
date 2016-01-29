@@ -1,7 +1,7 @@
 Package: CNVPanelizer
 Type: Package
 Title: Reliable CNV detection in targeted sequencing applications
-Version: 1.1.0
+Version: 1.1.1
 Date: 2015-10-04
 Authors@R: c(
     person("Cristiano", "Oliveira", email = "cristiano.oliveira at med.uni-heidelberg.de", role = c("aut")),
@@ -27,6 +27,7 @@ Imports:
     NOISeq,
     IRanges,
     Rsamtools,
+    S4vectors (>= 0.9.25),
     exomeCopy,
     foreach,
     ggplot2,

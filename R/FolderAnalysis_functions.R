@@ -479,7 +479,7 @@ RemSigGenes <- function(genesPos, sigGenes) {
 
 AmplProb <- function(genesPos) {
   #how many amplicons where used for each ofhte genes
-  geneCounts = elementLengths(genesPos)
+  geneCounts = elementNROWS(genesPos)
   #adjust the probablity for depending on the number of amplicons for each gene
   genePerc =  1/geneCounts
   #this information has to be available for each stable position
@@ -541,7 +541,7 @@ SampleNoiseGenes <- function(numAmpl = 2,
 #how many unique amplicon numbers are there
 NumberOfUniqueAmplicons <- function(genesPos) {
   # calcUniqueAmpliconNumbers <-function(genesPos) {
-  ampliconNumbers = elementLengths(genesPos)
+  ampliconNumbers = elementNROWS(genesPos)
   uniqueAmpliconNumbers = sort(unique(ampliconNumbers))
   return(uniqueAmpliconNumbers)
 }
