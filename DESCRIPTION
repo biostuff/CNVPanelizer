@@ -27,7 +27,7 @@ Imports:
     NOISeq,
     IRanges,
     Rsamtools,
-    S4vectors (>= 0.9.25),
+    S4Vectors (>= 0.9.25),
     exomeCopy,
     foreach,
     ggplot2,
