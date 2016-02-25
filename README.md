@@ -56,6 +56,7 @@ library(CNVPanelizer)
 ## Contributors
 
 cristiano.oliveira@med.uni-heidelberg.de
+
 thomas_wolf71@gmx.de
 
 ## License
