@@ -34,7 +34,7 @@
 
 % this needs to be after the usepackage otherwise
 % the references do no show at the end ?!?!
-\addbibresource{CNVPanelizer.bib} % Specifying the packages.bib file 
+%\addbibresource{CNVPanelizer.bib} % Specifying the packages.bib file 
 
 \title{CNVPanelizer: Reliable CNV detection in target sequencing applications}
 
@@ -361,7 +361,13 @@ numberOfGenesViewport = 20
 # index of the sample to show
 sampleIndexToShow = 2
 
-reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, ]
+# TODO improve this.. remove the column..
+# but for now just hide "Signif." column... no space available
+#indexToHide <- which(colnames(reportTables[[1]])=="Signif.")
+indexToHide <- which(colnames(reportTables[[1]])=="MeanRatio")
+
+reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, -c(indexToHide)]
+#reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, ]
 @
 
     \caption{Sample report table.}
@@ -370,23 +376,24 @@ reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, ]
 
   \begin{table}[h]
     \begin{tabular}{| l | p{15cm} |} \hline
-    Mean Ratio & The mean amplicon ratio between reference and sample
-    of interest for the gene\\ \hline
+%    Mean Ratio & The mean amplicon ratio between reference and sample
+%    of interest for the gene\\ \hline
 %    LBBtp | MeanBtp | UBBtp Ratio & The Lower, Mean and Upper bounds of the
 %    Bootstrap Ratio distribution. \\ \hline
 
     LowerBoundBoot | MeanBoot | UpperBoundBoot & The confidence interval of the
-    Bootstrap distribution. \\ \hline
+    Bootstrap distribution \\ \hline
 
 %    5\% | 50\% | 95\% Quantile & The quantiles of the bootstrap
 %    distribution\\ \hline
     Lower | Mean | Upper Noise & The Lower/Mean/Upper background
-    noise bounds. \\ \hline
+    noise bounds \\ \hline
     Signif. & Boolean value representing if read counts
     differences are Significant \\ \hline
     AboveNoise & Boolean value representing if LowerBoundBoot is
     above UpperNoise (UpperBoundBoot below LowerNoise) \\ \hline
     Amplicons & Number of Amplicons associated with the gene \\ \hline
+    PutativeStatus & The detected level of change \\ \hline
     Passed & if both  Signif. and AboveNoise are TRUE then 2, if only one
     is TRUE then 1 and if both are FALSE then 0 \\ \hline
     \end{tabular}
@@ -406,10 +413,12 @@ of plots for all test samples (A plot per sample).
 At the figure~\ref{fig:BootstrapPlot} we can see an example of the plot for
 a single sample.
 
+
 <<HelperFunctions, echo = FALSE, message=FALSE, warning=FALSE, eval=FALSE>>=
 
 # Directory where the generated files with the analysis results will be saved.
-outputDirectory <- "D:/data/NGS/CNVPanelizerResults"
+outputDirectory <- "./tmp"
+dir.create(outputDirectory, recursive = TRUE)
 
 # Export the report tables to excel format
 reportTablesFilepath <- file.path(outputDirectory, "report_tables.xlsx")
@@ -425,10 +434,12 @@ WriteListToXLSX(list(samplesReadCount = sampleReadCounts,
 WriteListToXLSX(list(samplesReadCount = samplesNormalizedReadCounts,
                      referenceReadCounts = referenceNormalizedReadCounts),
                 normalizedReadCountsFilepath)
+
+justToHide = PlotBootstrapDistributions(bootList, reportTables, outputFolder=outputDirectory, save=TRUE)
+
+save.image(file = file.path(outputDirectory, "RSession.Rdata"))
+
 @
-
-
-
 
 
 <<JustToShowBootPlot, echo = TRUE, eval=FALSE, message=FALSE, warning=FALSE>>=
