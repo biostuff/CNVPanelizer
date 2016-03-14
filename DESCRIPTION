@@ -6,8 +6,10 @@ Date: 2015-10-04
 Authors@R: c(
     person("Cristiano", "Oliveira", email = "cristiano.oliveira at med.uni-heidelberg.de", role = c("aut")),
     person("Thomas", "Wolf", email = "thomas_wolf71@gmx.com", role = c("aut", "cre")),
+    person("Albrecht", "Stenzinger", email = "albrecht.stenzinger at med.uni-heidelberg.de", role = c("ctb")),
     person("Volker", "Endris", email = "volker.endris at med.uni-heidelberg.de", role = c("ctb")),
     person("Nicole", "Pfarr", email = "nicole.pfarr at med.uni-heidelberg.de", role = c("ctb")),
+    person("Benedikt", "Brors", email = "b.brors at dkfz.de", role = c("ths")),
     person("Wilko", "Weichert", email = "wilko.weichert at med.uni-heidelberg.de", role = c("ths")))
 Description: A method that allows for the use of a collection of non-matched
     normal tissue samples. Our approach uses a non-parametric bootstrap
@@ -27,12 +29,11 @@ Imports:
     NOISeq,
     IRanges,
     Rsamtools,
-    S4Vectors (>= 0.9.25),
     exomeCopy,
     foreach,
     ggplot2,
     plyr,
-    xlsx
+    openxlsx
 License: GPL-3
 LazyData: false
 biocViews: Classification, Sequencing, Normalization, CopyNumberVariation, Coverage
