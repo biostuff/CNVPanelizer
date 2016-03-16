@@ -26,6 +26,7 @@ Suggests:
     RUnit,
     BiocGenerics
 Imports:
+    S4Vectors,
     NOISeq,
     IRanges,
     Rsamtools,
