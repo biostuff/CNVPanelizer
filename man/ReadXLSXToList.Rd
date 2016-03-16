@@ -8,12 +8,18 @@
     by \code{WriteReadCountsToXLSX}
 }
 \usage{
-ReadXLSXToList(filepath)
+ReadXLSXToList(filepath, rowNames = TRUE, colNames = TRUE)
 }
 
 \arguments{
   \item{filepath}{
     filepath
+  }
+  \item{rowNames}{
+    if row names should be included
+  }
+  \item{colNames}{
+    if col names should be included
   }
 }
 
