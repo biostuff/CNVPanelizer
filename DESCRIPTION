@@ -1,16 +1,16 @@
 Package: CNVPanelizer
 Type: Package
 Title: Reliable CNV detection in targeted sequencing applications
-Version: 1.1.3
-Date: 2015-10-04
+Version: 1.1.4
+Date: 2016-03-18
 Authors@R: c(
-    person("Cristiano", "Oliveira", email = "cristiano.oliveira at med.uni-heidelberg.de", role = c("aut")),
-    person("Thomas", "Wolf", email = "thomas_wolf71@gmx.com", role = c("aut", "cre")),
-    person("Albrecht", "Stenzinger", email = "albrecht.stenzinger at med.uni-heidelberg.de", role = c("ctb")),
-    person("Volker", "Endris", email = "volker.endris at med.uni-heidelberg.de", role = c("ctb")),
-    person("Nicole", "Pfarr", email = "nicole.pfarr at med.uni-heidelberg.de", role = c("ctb")),
-    person("Benedikt", "Brors", email = "b.brors at dkfz.de", role = c("ths")),
-    person("Wilko", "Weichert", email = "wilko.weichert at med.uni-heidelberg.de", role = c("ths")))
+    person("Cristiano", "Oliveira", email = "cristiano.oliveira@med.uni-heidelberg.de", role = c("aut")),
+    person("Thomas", "Wolf", email = "thomas_wolf71@gmx.de", role = c("aut", "cre")),
+    person("Albrecht", "Stenzinger", email = "albrecht.stenzinger@med.uni-heidelberg.de", role = c("ctb")),
+    person("Volker", "Endris", email = "volker.endris@med.uni-heidelberg.de", role = c("ctb")),
+    person("Nicole", "Pfarr", email = "nicole.pfarr@med.uni-heidelberg.de", role = c("ctb")),
+    person("Benedikt", "Brors", email = "b.brors@dkfz.de", role = c("ths")),
+    person("Wilko", "Weichert", email = "wilko.weichert@med.uni-heidelberg.de", role = c("ths")))
 Description: A method that allows for the use of a collection of non-matched
     normal tissue samples. Our approach uses a non-parametric bootstrap
     subsampling of the available reference samples to estimate the distribution
@@ -27,6 +27,9 @@ Suggests:
     BiocGenerics
 Imports:
     S4Vectors,
+    grDevices,
+    stats,
+    utils,
     NOISeq,
     IRanges,
     Rsamtools,
