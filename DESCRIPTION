@@ -1,16 +1,17 @@
 Package: CNVPanelizer
 Type: Package
 Title: Reliable CNV detection in targeted sequencing applications
-Version: 1.1.4
-Date: 2016-03-18
+Version: 1.5.1
+Date: 2017-04-07
 Authors@R: c(
     person("Cristiano", "Oliveira", email = "cristiano.oliveira@med.uni-heidelberg.de", role = c("aut")),
     person("Thomas", "Wolf", email = "thomas_wolf71@gmx.de", role = c("aut", "cre")),
     person("Albrecht", "Stenzinger", email = "albrecht.stenzinger@med.uni-heidelberg.de", role = c("ctb")),
     person("Volker", "Endris", email = "volker.endris@med.uni-heidelberg.de", role = c("ctb")),
     person("Nicole", "Pfarr", email = "nicole.pfarr@med.uni-heidelberg.de", role = c("ctb")),
-    person("Benedikt", "Brors", email = "b.brors@dkfz.de", role = c("ths")),
-    person("Wilko", "Weichert", email = "wilko.weichert@med.uni-heidelberg.de", role = c("ths")))
+    person("Wilko", "Weichert", email = "wilko.weichert@med.uni-heidelberg.de", role = c("ctb")),
+    person("Arne", "Warth", email = "arne.warth@med.uni-heidelberg.de", role = c("ctb")),
+    person("Benedikt", "Brors", email = "b.brors@dkfz.de", role = c("ths")))
 Description: A method that allows for the use of a collection of non-matched
     normal tissue samples. Our approach uses a non-parametric bootstrap
     subsampling of the available reference samples to estimate the distribution

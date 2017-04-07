@@ -631,8 +631,10 @@ PlotBootstrapDistributions  <- function(bootList,
 
         if(is.null(sampleNames)) {
             filename <- names(bootList[selSample])
+            filepath <- paste0(outputFolder, "/", filename, "_plot.pdf")
         } else {
             filename <- sampleNames[selSample]
+            filepath <- paste0(outputFolder, "/", filename, ".pdf")
         }
         bootPlot <- ggplot(df, aes(x = class, y = log2(ratios), fill = testsPassed)) +
             geom_violin() + ggtitle(filename) +
@@ -652,7 +654,6 @@ PlotBootstrapDistributions  <- function(bootList,
 
         if(save == TRUE) {
             dir.create(outputFolder, recursive = TRUE, showWarnings = FALSE)
-            filepath <- paste0(outputFolder, "/", filename, "_plot.pdf")
             ggsave(filename = filepath,
                    plot = bootPlot,
                    height = 7.42 * 1,
