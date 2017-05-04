@@ -421,7 +421,7 @@ outputDirectory <- "./tmp"
 dir.create(outputDirectory, recursive = TRUE)
 
 # Export the report tables to excel format
-reportTablesFilepath <- file.path(outputDirectory, "report_tables.xlsx")
+reportTablesFilepath <- file.path(outputDirectory, "reportTables.xlsx")
 WriteListToXLSX(reportTables, reportTablesFilepath)
 
 # # Export read counts to excel format

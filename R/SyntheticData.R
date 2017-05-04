@@ -1,4 +1,5 @@
 #distribution setting
+# nocov start
 lambdaNor = 1000
 lambdaAmp = 1.5 * lambdaNor 
 lambdaDel = 1/1.5 * lambdaNor
@@ -57,3 +58,5 @@ referenceSamples = GenerateSynthetic(numberOfReferenceSamples,
                                      numberOfGenes,
                                      cnvProb = 1/100,
                                      label = "Reference")
+# nocov end
+

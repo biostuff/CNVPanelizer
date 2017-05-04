@@ -7,6 +7,7 @@ BedToGenomicRanges <- function(panelBedFilepath,
                                split = ";",
                                doReduce = TRUE,
                                rangeExtend = 0,
+                               dropChromossomes = NA,
                                skip = 1) {
     #load the bed file
     segments <- read.table(panelBedFilepath,
@@ -50,6 +51,10 @@ BedToGenomicRanges <- function(panelBedFilepath,
                                                 end(gr),
                                                 sep = "_",
                                                 amplicons)
+
+    if (!is.na(dropChromossomes)) {
+      gr <- dropSeqlevels(gr, dropChromossomes)
+    }
     return(gr)
 }
 
@@ -118,15 +123,15 @@ IndexGenesPositions = function(genes) {
     return(genesPos)
 }
 
-#how many numbers in a vector are above a given cutoff
-PercentAboveValue <- function(vector, value) {
-    sum(vector > value)/length(vector)
-}
-
-#how many numbers in a vector are below a given cutoff
-PercentBelowValue <- function(vector, value) {
-    sum(vector < value)/length(vector)
-}
+# #how many numbers in a vector are above a given cutoff
+# PercentAboveValue <- function(vector, value) {
+#     sum(vector > value)/length(vector)
+# }
+#
+# #how many numbers in a vector are below a given cutoff
+# PercentBelowValue <- function(vector, value) {
+#     sum(vector < value)/length(vector)
+# }
 
 # check this params with Thomas
 #index the bam files if there is no index yet
@@ -206,11 +211,11 @@ GeneMeanRatioMatrix <- function(genesPos, ratioMatrix) {
     return(ratioList)
 }
 
-ReferenceWeights <- function(refmat, varianceFunction = sd) {
-    variance = apply(refmat, 2, varianceFunction)
-    weights = 1/variance
-    return(weights)
-}
+# ReferenceWeights <- function(refmat, varianceFunction = sd) {
+#     variance = apply(refmat, 2, varianceFunction)
+#     weights = 1/variance
+#     return(weights)
+# }
 
 # split into a function generating the bootstrap distribution 
 # and a function averaging over amplicons.
@@ -221,14 +226,22 @@ BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
     # get the genes positions in the matrix as a list from a gene name vector
     genesPos <- IndexGenesPositions(geneNames)
 
+    if (class(sampleMatrix) != "matrix") {
+        stop(paste("Parameter 'sampleMatrix' has to be of class matrix and is of class", class(sampleMatrix)))
+    }
+
+    if (is.null(colnames(sampleMatrix)) | length(colnames(sampleMatrix))!=ncol(sampleMatrix)) {
+        stop("All columns of 'sampleMatrix' have to be named")
+    }
+
     # a vector and matrix are not the same and for a vector iterating over
     # the column makes no sense so we have
     # to check if a matrix or a vector was passed. ncol only works for matrix
     # not for vector
     if (class(sampleMatrix) == "matrix") {
         iterator <- 1:ncol(sampleMatrix)
-    } else {
-        iterator <- 1
+    # } else {
+    #     iterator <- 1
     }
 
     i <- NULL
@@ -240,8 +253,8 @@ BootList <- function(geneNames, sampleMatrix, refmat, replicates) {
             # if a mtrix or a vector was passed.
             if (class(sampleMatrix) == "matrix") {
                 testSample <- sampleMatrix[, i]
-            } else {
-                testSample <- sampleMatrix
+            # } else {
+            #     testSample <- sampleMatrix
             }
             # for each gene subsample the amplicon positions independently
             # sample the samples using bootstrapping
@@ -528,6 +541,19 @@ SampleRatio <- function(ratios, numAmpl, amplWeights = NULL) {
     return(randomMean)
 }
 
+DescriptiveStatistics <- function(distribution, robust = FALSE) {
+	print(paste("Robust is ", robust))
+	if (robust) {
+		centralTendency <- median(distribution)
+		variability <- mad(distribution, constant = 1)
+	} else {
+		centralTendency <- mean(distribution)
+		variability <- sd(distribution)
+	}
+	return(list(centralTendency = centralTendency,
+							variability = variability))
+}
+
 SampleNoiseGenes <- function(numAmpl = 2,
                              ratios,
                              replicates = 100,
@@ -544,13 +570,17 @@ SampleNoiseGenes <- function(numAmpl = 2,
     #get the upper, mean and lower values of the noise distribution
     logSampleNoiseDistribution <- log(sampleNoiseDistribution)
 
-    if (robust) {
-        logMeanNoise <- median(logSampleNoiseDistribution)
-        logSdNoise <- mad(logSampleNoiseDistribution, constant = 1)
-    } else {
-        logMeanNoise <- mean(logSampleNoiseDistribution)
-        logSdNoise <- sd(logSampleNoiseDistribution)
-    }
+    ds <- DescriptiveStatistics(logSampleNoiseDistribution, robust)
+    logMeanNoise <- ds$centralTendency
+    logSdNoise <- ds$variability
+
+    # if (robust) {
+    #     logMeanNoise <- median(logSampleNoiseDistribution)
+    #     logSdNoise <- mad(logSampleNoiseDistribution, constant = 1)
+    # } else {
+    #     logMeanNoise <- mean(logSampleNoiseDistribution)
+    #     logSdNoise <- sd(logSampleNoiseDistribution)
+    # }
 
     lowerBound <- exp(logMeanNoise + qnorm(margin) * logSdNoise)
     meanNoise <- exp(logMeanNoise)

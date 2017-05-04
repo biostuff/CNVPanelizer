@@ -15,6 +15,7 @@ BedToGenomicRanges(panelBedFilepath,
                    split,
                    doReduce,
                    rangeExtend,
+                   dropChromossomes,
                    skip)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -39,6 +40,11 @@ BedToGenomicRanges(panelBedFilepath,
      Affects the merging of overlapping regions and
      also read counting.
 }
+
+  \item{dropChromossomes}{
+     Exclude vector of chromossomes (by the identifier used at the BED file)
+}
+
   \item{skip}{
      How many lines should be skipped from the top of the bed file.
      The function assumes a bed file with column names.
