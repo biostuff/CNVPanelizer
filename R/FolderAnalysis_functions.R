@@ -63,6 +63,7 @@ ReadCountsFromBam <- function(bamFilenames,
                                 sampleNames,
                                 gr,
                                 ampliconNames,
+                                minimumMappingQuality = 20,
                                 removeDup = FALSE) {
 
     if (missing(ampliconNames)) {
@@ -72,10 +73,11 @@ ReadCountsFromBam <- function(bamFilenames,
     # Because of package check complaints
     i <- NULL
     curbam = foreach(i = seq_along(bamFilenames), .combine = cbind) %do% {
+        message(paste("Reading counts for bam file: ", bamFilenames[i]))
         countBamInGRanges(bamFilenames[i],
                             gr,
                             remove.dup = removeDup,
-                            min.mapq = 20,
+                            min.mapq = minimumMappingQuality,
                             get.width = TRUE)
     }
 
@@ -90,31 +92,40 @@ ReadCountsFromBam <- function(bamFilenames,
 }
 
 #get the combined counts
-CombinedNormalizedCounts <- function(sampleCounts,
-                                    referenceCounts,
-                                    ampliconNames = NULL) {
-    sampleCounts <- as.matrix(sampleCounts)
-    referenceCounts <- as.matrix(referenceCounts)
-    allCounts <- cbind(sampleCounts, referenceCounts)
-    classes <- rep(c("samples", "reference"),
-                    c(ncol(sampleCounts), ncol(referenceCounts)))
-    tinyValueToAvoidZeroReadCounts <- 1e-05
-    bamDataRangesNorm <- tmm(allCounts,
-                            refColumn = NULL,
-                            k = tinyValueToAvoidZeroReadCounts)
-    if (!is.null(ampliconNames)) {
-        rownames(bamDataRangesNorm) = ampliconNames
-    }
-    normalizedSamples <- bamDataRangesNorm[, which(classes == "samples"),
-                                                    drop = FALSE]
-    normalizedReference <- bamDataRangesNorm[, which(classes == "reference"),
-                                                    drop = FALSE]
-    return(list(samples = normalizedSamples, reference = normalizedReference))
+CombinedNormalizedCounts <- function (sampleCounts,
+                                      referenceCounts,
+                                      method = "tmm",
+                                      ampliconNames = NULL) {
+  sampleCounts <- as.matrix(sampleCounts)
+  referenceCounts <- as.matrix(referenceCounts)
+  allCounts <- cbind(sampleCounts, referenceCounts)
+  classes <- rep(c("samples", "reference"), c(ncol(sampleCounts),
+                                              ncol(referenceCounts)))
+  bamDataRangesNorm <- NormalizeCounts(allCounts, method = method)
+#  bamDataRangesNorm <- NormalizeCounts(allCounts)
+  if (!is.null(ampliconNames)) {
+    rownames(bamDataRangesNorm) = ampliconNames
+  }
+  normalizedSamples <- bamDataRangesNorm[, which(classes == "samples"), drop = FALSE]
+  normalizedReference <- bamDataRangesNorm[, which(classes == "reference"), drop = FALSE]
+  return(list(samples = normalizedSamples, reference = normalizedReference))
 }
 
 ###############################################################################
 # helper functions
 ###############################################################################
+
+NormalizeCounts <- function(allCounts, method = "tmm") {
+  allowedNormalizationMethods <- c("tmm") # TODO check if normalization method is supported
+  tinyValueToAvoidZeroReadCounts <- 1e-05
+  bamDataRangesNorm <- NULL
+  if (method == "tmm") {
+    bamDataRangesNorm <- tmm(allCounts, refColumn = NULL, k = tinyValueToAvoidZeroReadCounts)
+  } else {
+    msg(paste("method", method, "not included in the allowed Normalization methods", allowedNormalizationMethods))
+  }
+  return(bamDataRangesNorm)
+}
 
 #get the positions for each gene as a list
 IndexGenesPositions = function(genes) {
@@ -217,7 +228,7 @@ GeneMeanRatioMatrix <- function(genesPos, ratioMatrix) {
 #     return(weights)
 # }
 
-# split into a function generating the bootstrap distribution 
+# split into a function generating the bootstrap distribution
 # and a function averaging over amplicons.
 # define the function to generate bootstrap distributions and
 # return a list with the genewise bootstrapping
@@ -396,6 +407,7 @@ Background <- function(geneNames,
 
     sampleIndex <- NULL
     backgroundObject <- foreach(sampleIndex = seq_along(genesPosNonSig)) %do% {
+        message(paste0("Calculanting Background for ", colnames(samplesNormalizedReadCounts)[sampleIndex]))
         nonSigAmpliconRatios <- ratioMatrix[unlist(genesPosNonSig[[sampleIndex]]), sampleIndex]
         IterateAmplNum(uniqueAmpliconNumbers,
                        nonSigAmpliconRatios,
@@ -415,6 +427,16 @@ roundDf <- function(x, digits) {
     numeric_columns <- sapply(x, is.numeric)
     x[numeric_columns] <-  round(x[numeric_columns], digits)
     x
+}
+
+# Helper function to add column to reportTables
+ReliableStatus <- function(putative, numberOfThresholdsPassed) {
+  status <- as.vector(putative)
+#  print(status)
+  if (numberOfThresholdsPassed < 2) {
+    status <- "Normal"
+  }
+  return(status)
 }
 
 ReportTables <- function(geneNames,
@@ -481,6 +503,16 @@ ReportTables <- function(geneNames,
                            "Passed")
         dfTemp
     }
+
+    # TODO Check if this column added is correct
+    for(i in 1:length(reportTables)) {
+      tmpReportTable <- reportTables[[i]]
+      #  tmpReportTable <- reportTables[[1]]
+      status <- mapply(ReliableStatus, tmpReportTable$PutativeStatus, tmpReportTable$Passed)
+      #  print(i)
+      reportTables[[i]] <- cbind(reportTables[[i]], "ReliableStatus" = status)
+    }
+
 #    names(reportTables) <- colnames(samplesNormalizedReadCounts)
     names(reportTables) <- names(bootList)
     return(reportTables)
@@ -542,7 +574,7 @@ SampleRatio <- function(ratios, numAmpl, amplWeights = NULL) {
 }
 
 DescriptiveStatistics <- function(distribution, robust = FALSE) {
-	print(paste("Robust is ", robust))
+#	print(paste("Robust is ", robust))
 	if (robust) {
 		centralTendency <- median(distribution)
 		variability <- mad(distribution, constant = 1)
@@ -626,6 +658,266 @@ IterateAmplNum <- function(uniqueAmpliconNumbers,
     return(noiseResults)
 }
 
+SelectReferenceSetByPercentil <- function(allSamplesReadCounts,
+                                 normalizationMethod = "tmm",
+                                 lowerBoundPercentage = 1,
+                                 upperBoundPercentage = 99) {
+
+  allSamplesReadCountsNormalized <-NormalizeCounts(allSamplesReadCounts,
+                                                   method = normalizationMethod)
+
+  selectedSamplesFilepath <- NULL
+  allSamples <- round(allSamplesReadCountsNormalized)
+  samplesColnames <- colnames(allSamples)
+
+  selectedRange <- list()
+  for (i in 1:nrow(allSamples)) {
+    #    selectedRange[[i]] <- quantile(allSamples[i,])
+    selectedRange[[i]] <- quantile(allSamples[i,], c(lowerBoundPercentage, upperBoundPercentage) / 100)
+  }
+
+  selectedSamplesIndex <- NULL
+  excludedSamplesIndex <- NULL
+  for (j in 1:ncol(allSamples)) {
+    addSample <- TRUE
+    for(i in 1:nrow(allSamples)) {
+      if ((allSamples[i, j] < selectedRange[[i]][1]) | (allSamples[i, j] > selectedRange[[i]][2])) {
+        addSample <- FALSE
+        #        print(paste("Add sample?", addSample, i, selectedRange[[i]][1], allSamples[i, j], selectedRange[[i]][2]))
+        break
+      }
+    }
+    if (addSample) {
+      selectedSamplesIndex <- cbind(selectedSamplesIndex, j)
+    } else {
+      excludedSamplesIndex <- cbind(excludedSamplesIndex, j)
+    }
+  }
+
+  selectedSamples <- allSamples[, selectedSamplesIndex]
+  excludedSamples <- allSamples[, -excludedSamplesIndex]
+  selectedSamplesFilepath <- colnames(selectedSamples)
+  return(selectedSamplesFilepath)
+}
+
+SelectReferenceSetByKNN <- function(allSamplesReadCounts, referenceNumberOfElements) {
+# referenceSamples <- function(referenceNumberOfElements, allSamples) {
+  allSamples <- allSamplesReadCounts
+  numberOfSamples <- ncol(allSamples)
+  numberOfOutliers <- numberOfSamples - referenceNumberOfElements
+  if (numberOfOutliers < 0) {
+    message(paste("Number of samples", numberOfSamples, "is bigger than the size of the reference set requested", referenceNumberOfElements))
+    return(allSamples)
+  } else if (numberOfOutliers == 0) {
+    message(paste("Number of samples", numberOfSamples, "is equal to the size of the reference set requested", referenceNumberOfElements))
+    return(allSamples)
+  } else {
+    allSamples <- t(allSamples)
+    kmeans.result <- kmeans(allSamples, centers=1)
+    # "centers" is a data frame with one center
+    centers <- kmeans.result$centers[kmeans.result$cluster, ]
+    distances <- sqrt(rowSums((allSamples - centers)^2))
+    outliers <- order(distances, decreasing=T)[1:numberOfOutliers]
+    # these rows are top outliers
+    message(paste("outliers", outliers))
+    allSamples <- t(allSamples)
+    return(colnames(allSamples[, -outliers]))
+  }
+}
+
+SelectReferenceSet <- function(samplesFilepaths,
+                               genomicRanges,
+                               removePcrDuplicates = FALSE,
+                               normalizationMethod = "tmm",
+                               referenceMaximumNumberOfElements = 10,
+                               referenceSelectionMethod = "percentil",
+                               lowerBoundPercentage = 1,
+                               upperBoundPercentage = 99) {
+
+#  samplesFilepaths <- allSamplesFilteredFilepaths[1:3]
+#  genomicRanges <- genomicRangesFromBed
+
+  allSamplesReadCounts <- ReadCountsFromBam(bamFilenames = samplesFilepaths,
+                                            sampleNames = samplesFilepaths,
+                                            gr = genomicRanges,
+#                                            ampliconNames = ampliconNames,
+                                            removeDup = removePcrDuplicates)
+
+  selectedSamplesFilepath <- SelectReferenceSetFromReadCounts(allSamplesReadCounts,
+                                                              genomicRanges,
+                                                              removePcrDuplicates = removePcrDuplicates,
+                                                              normalizationMethod = removePcrDuplicates,
+                                                              referenceMaximumNumberOfElements = referenceMaximumNumberOfElements,
+                                                              referenceSelectionMethod = referenceSelectionMethod,
+                                                              lowerBoundPercentage = lowerBoundPercentage,
+                                                              upperBoundPercentage = lowerBoundPercentage)
+  return(selectedSamplesFilepath)
+}
+
+SelectReferenceSetFromReadCounts <- function(allSamplesReadCounts,
+                               genomicRanges,
+                               removePcrDuplicates = FALSE,
+                               normalizationMethod = "tmm",
+                               referenceMaximumNumberOfElements = 10,
+                               referenceSelectionMethod = "percentil",
+                               lowerBoundPercentage = 1,
+                               upperBoundPercentage = 99) {
+
+
+  selectedSamplesFilepath <- NULL
+  if (referenceSelectionMethod == "percentil") {
+    selectedSamplesFilepath <- SelectReferenceSetByPercentil(allSamplesReadCounts,
+                                                             normalizationMethod = normalizationMethod,
+                                                             #                                                              referenceSelectionMethod = referenceSelectionMethod,
+                                                             lowerBoundPercentage = lowerBoundPercentage,
+                                                             upperBoundPercentage = upperBoundPercentage)
+  } else if (referenceSelectionMethod == "knn") {
+    selectedSamplesFilepath <- SelectReferenceSetByKNN(allSamplesReadCounts, referenceMaximumNumberOfElements)
+  } else {
+    msg(paste("method", referenceSelectionMethod, "not supported"))
+  }
+  return(selectedSamplesFilepath)
+}
+
+CollectColumnFromAllReportTables <- function(reportTables, columnName) {
+  compilation <- NULL
+  mySampleNames <- names(reportTables)
+  for(name in mySampleNames) {
+    tmpReportTable <- reportTables[[name]]
+    compilation <- cbind(compilation, as.vector(tmpReportTable[, columnName]))
+  }
+  colnames(compilation) <- mySampleNames
+  rownames(compilation) <- rownames(reportTables[[1]])
+  return(compilation)
+}
+
+revalueDF <- function(myDataFrame, mappings) {
+  myDataFrameColnames <- colnames(myDataFrame)
+  for(columnName in myDataFrameColnames) {
+    myDataFrame[, columnName] <- revalue(myDataFrame[, columnName], mappings)
+  }
+  mode(myDataFrame) <- "numeric"
+  return(myDataFrame)
+}
+
+# why these colors by default:
+StatusHeatmap <- function(dfData,
+                        statusColors = c("Deletion" = "blue",
+                                         "Normal" = "green",
+                                         "Amplification" = "red"),
+                        header = "",
+                        filepath = "CNVPanelizerHeatMap.png") {
+
+  mappings <- seq(length(statusColors))
+#  mappings <- c(-1, 0, 1)
+  names(mappings) <- names(statusColors)
+  matrixData <- revalueDF(dfData, mappings)
+
+  valuesUsed <- table(matrixData)
+  indexOfColorsUsed <- as.numeric(names(valuesUsed))
+  colorsRequired <- unname(statusColors[indexOfColorsUsed])
+
+# TODO find out why do I need this horrible hack when only one status is available
+  if (length(colorsRequired) <= 1) {
+    colorsRequired <- c("green", "yellow")
+  }
+
+#  colorsRequired <- as.vector(statusColors[as.numeric(names(table(matrixData)))])
+
+  png(file = file.path(filepath),    # create PNG for the heat map
+      width = 5*300,        # 5 x 300 pixels
+      height = 5*300,
+      res = 300,            # 300 pixels per inch
+      pointsize = 8)        # smaller font size
+
+  lmat <- rbind( c(5,3,4), c(2,1,4) )
+  #lhei <- c(1.5, 4)
+  lhei <- c(1, 10)
+  lwid <- c(1.5, 4, 0.75)
+
+  myCexRow <- 0.2
+
+  heatmap.2(matrixData,
+            main = header,
+            # plot layout
+            lmat = lmat,
+            lhei = lhei,
+            lwid = lwid,
+            #          scale = "row",
+            #          ColSideColors=heatColors,
+            key = FALSE, # whether a color-key should be shown
+            #          key = TRUE, # whether a color-key should be shown
+            #          key.par=list(match=c(0),
+            #             amplification_deletion=c(1, 2, 3, 4),
+            #             deletion_amplification=c(5, 6)),
+            dendrogram = "none",
+            tracecol=NA,
+            #          density.info=c("histogram","density","none"),
+#            col = unname(statusColors),
+#            col = c("green"),
+            col = colorsRequired,    # if the values are not all revalued the colors have to be passed selectively
+
+            #          col = heatColors,
+            #          col = heatColors[matchPoints],
+            colsep=1:ncol(matrixData),
+            rowsep=1:nrow(matrixData),
+            margins = c(15, 5),
+            Rowv=FALSE,
+            Colv=FALSE,
+#            cexRow=myCexRow
+)
+
+  #   legend("topleft", inset=.02, title= "UOUOU",
+  #          "this is legend",
+  #          #         fill=topo.colors(3),
+  # #         fill=unname(statusColors),
+  #          horiz=TRUE, cex=0.8)
+  #bottomleft
+  legend("bottom", inset=.01, title="CNV Status",
+         names(statusColors),
+         #         fill=topo.colors(3),
+         fill=unname(statusColors),
+         horiz=TRUE, cex=0.8)
+
+  #   legend("bottomleft", legend=c("Line 1", "Line 2"),
+  #          col=c("red", "blue"), lty=1:2, cex=0.8)
+
+  #   legend(1, 95, legend=c("Line 1", "Line 2"),
+  #          col=c("red", "blue"), lty=1:2, cex=0.8)
+
+ # in case of mistake this instruction should be called until return null instead of png..
+  dev.off()
+}
+
+StatusStability <- function(geneNames, sampleNormalizedReadCounts, tmpReferenceNormalizedReadCounts) {
+  centralTendency <-  matrix(rowMeans(tmpReferenceNormalizedReadCounts), ncol = 1)
+  rownames(centralTendency) <- rownames(tmpReferenceNormalizedReadCounts)
+  referenceAndSampleDifferences <- centralTendency - sampleNormalizedReadCounts
+  rownames(referenceAndSampleDifferences) <- rownames(tmpReferenceNormalizedReadCounts)
+  colnames(referenceAndSampleDifferences) <- "difference"
+  uniqueGeneNames <- unique(geneNames)
+  geneStabilityStatus <- c()
+  for (i in seq(uniqueGeneNames)) {
+    geneAmpliconIndexes <- grep(uniqueGeneNames[i], rownames(myReference))
+    geneAmpliconStatus <- referenceAndSampleDifferences[geneAmpliconIndexes, ]
+    allGeneAmpliconsHaveSameStatus <- length(unique(geneAmpliconStatus >= 0))==1
+    geneStabilityStatus <- c(geneStabilityStatus, allGeneAmpliconsHaveSameStatus)
+  }
+  names(geneStabilityStatus) <- uniqueGeneNames
+  return(geneStabilityStatus)
+}
+
+StatusStabilityTable <- function(geneNames, tmpSamplesNormalizedReadCounts, tmpReferenceNormalizedReadCounts) {
+  statusStabilityTable <- NULL
+  for (i in seq(ncol(tmpSamplesNormalizedReadCounts))) {
+    statusStabilityTable <- cbind(statusStabilityTable, StatusStability(geneNames, matrix(tmpSamplesNormalizedReadCounts[, i], ncol = 1), tmpReferenceNormalizedReadCounts))
+  }
+  colnames(statusStabilityTable) <- colnames(tmpSamplesNormalizedReadCounts)
+  #   statusStabilityTable <- t(statusStabilityTable)
+  #   colnames(statusStabilityTable) <- colnames(tmpSamplesNormalizedReadCounts)
+  return(statusStabilityTable)
+}
+
 PlotBootstrapDistributions  <- function(bootList,
                                         reportTables,
                                         outputFolder = getwd(),
@@ -683,6 +975,8 @@ PlotBootstrapDistributions  <- function(bootList,
             geom_hline(yintercept=0, color="#009E73")
 
         if(save == TRUE) {
+            message(paste0("Saving plot to '", filepath, "'"))
+#            dir.create(outputFolder, recursive = TRUE, showWarnings = TRUE)
             dir.create(outputFolder, recursive = TRUE, showWarnings = FALSE)
             ggsave(filename = filepath,
                    plot = bootPlot,
@@ -696,3 +990,154 @@ PlotBootstrapDistributions  <- function(bootList,
     return(plotList)
 }
 
+CNVPanelizerFromReadCounts <- function(sampleReadCounts,
+                                       referenceReadCounts,
+                                       genomicRangesFromBed,
+#                                        bedFilepath,
+#                                        amplColumnNumber = 6,
+#                                       minimumMappingQuality = 20,
+                                       numberOfBootstrapReplicates = 10000,
+#                                       removePcrDuplicates = TRUE,
+#                                      analysisMode = "gene",   # analysisMode can be "gene" or "amplicon"
+                                       robust = TRUE,
+                                       backgroundSignificanceLevel = 0.05,
+                                       outputDir = file.path(getwd(), "CNVPanelizer")) {
+
+  VerifiyIfOutputDirectoryExistsOrIsNotEmpty(outputDir)
+
+    genomicRangesFromBed <- BedToGenomicRanges(bedFilepath,
+                                             ampliconColumn = amplColumnNumber,
+                                             split = "_")
+
+    metadataFromGenomicRanges <- elementMetadata(genomicRangesFromBed)
+    geneNames = metadataFromGenomicRanges["geneNames"][, 1]
+
+#
+# #   metadataFromGenomicRanges <- elementMetadata(genomicRangesFromBed)
+# #   geneNames = metadataFromGenomicRanges["geneNames"][, 1]
+# #   ampliconNames = metadataFromGenomicRanges["ampliconNames"][, 1]
+#
+#   sampleReadCounts <- ReadCountsFromBam(bamFilenames = sampleBamFilepaths,
+#                                         sampleNames = sampleBamFilepaths,
+#                                         gr = genomicRangesFromBed,
+#                                         removeDup = FALSE)
+#
+#   sampleReadCounts <- ReadCountsFromBam(bamFilenames = sampleBamFilepaths,
+#                                         sampleNames = sampleBamFilepaths,
+#                                         gr = genomicRangesFromBed,
+#                                         removeDup = FALSE)
+
+  normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts,
+                                                   referenceReadCounts
+#                                                   ,                                                   ampliconNames = ampliconNames
+                                                   )
+
+  # After normalization data sets need to be splitted again to perform bootstrap
+  samplesNormalizedReadCounts = normalizedReadCounts["samples"][[1]]
+  referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
+
+  bootList <- BootList(geneNames,
+                       samplesNormalizedReadCounts,
+                       referenceNormalizedReadCounts,
+                       replicates = numberOfBootstrapReplicates)
+
+  # Estimate the background noise left after normalization
+  backgroundNoise <- Background(geneNames,
+                                samplesNormalizedReadCounts,
+                                referenceNormalizedReadCounts,
+                                bootList,
+                                replicates = numberOfBootstrapReplicates,
+                                significanceLevel = backgroundSignificanceLevel,
+                                robust = TRUE)
+
+  # Build report tables
+  reportTables <- ReportTables(geneNames,
+                               samplesNormalizedReadCounts,
+                               referenceNormalizedReadCounts,
+                               bootList,
+                               backgroundNoise)
+
+  plots = PlotBootstrapDistributions(bootList,
+                             reportTables,
+                             sampleNames = names(reportTables),
+                             outputFolder = file.path(outputDir, "plots2"),
+                             save = TRUE)
+
+  CNVPanelizerResults <- setClass("CNVPanelizerResults",
+                                  #                                  setClass("CNVPanelizerResults",
+            slots = c(sampleReadCounts="matrix",
+                      referenceReadColunts="matrix",
+                      genomicRangesFromBed="GRanges",
+                      bootList="list",
+                      backgroundNoise="list",
+                      reportTables="list"))
+
+  myCNVPanelizerResults <- CNVPanelizerResults(sampleReadCounts = sampleReadCounts,
+                                               referenceReadColunts = referenceReadCounts,
+                                               genomicRangesFromBed = genomicRangesFromBed,
+                                               bootList = bootList,
+                                               backgroundNoise = backgroundNoise,
+                                               reportTables = reportTables)
+
+  return(myCNVPanelizerResults)
+
+#   return(list(bootList = bootList,
+#               backgroundNoise = backgroundNoise,
+#               reportTables = reportTables,
+#               plots = plots))
+}
+
+CNVPanelizer <- function(sampleBamFilepaths,
+                         referenceBamFilepaths,
+                         bedFilepath,
+                         amplColumnNumber = 6,
+                         minimumMappingQuality = 20,
+                         numberOfBootstrapReplicates = 10000,
+                         removePcrDuplicates = TRUE,
+#                         analysisMode = "gene",   # analysisMode can be "gene" or "amplicon"
+                         robust = TRUE,
+                         outputDir = file.path(getwd(), "CNVPanelizer")) {
+
+  VerifiyIfOutputDirectoryExistsOrIsNotEmpty(outputDir)
+
+  genomicRangesFromBed <- BedToGenomicRanges(bedFilepath,
+                                             ampliconColumn = amplColumnNumber,
+                                             split = "_")
+
+#  metadataFromGenomicRanges <- elementMetadata(genomicRangesFromBed)
+#  geneNames = metadataFromGenomicRanges["geneNames"][, 1]
+#  ampliconNames = metadataFromGenomicRanges["ampliconNames"][, 1]
+
+  sampleReadCounts <- ReadCountsFromBam(bamFilenames = sampleBamFilepaths,
+                                        sampleNames = sampleBamFilepaths,
+                                        gr = genomicRangesFromBed,
+                                        minimumMappingQuality = minimumMappingQuality,
+                                        removeDup = removePcrDuplicates)
+
+  referenceReadCounts <- ReadCountsFromBam(bamFilenames = referenceBamFilepaths,
+                                        sampleNames = referenceBamFilepaths,
+                                        gr = genomicRangesFromBed,
+                                        minimumMappingQuality = minimumMappingQuality,
+                                        removeDup = removePcrDuplicates)
+
+  results <- CNVPanelizerFromReadCounts(sampleReadCounts = sampleReadCounts,
+                                       referenceReadCounts = referenceReadCounts,
+                                       genomicRangesFromBed = genomicRangesFromBed,
+#                                        bedFilepath = bedFilepath,
+#                                        amplColumnNumber = amplColumnNumber,
+#                                       minimumMappingQuality = minimumMappingQuality,
+                                       numberOfBootstrapReplicates = numberOfBootstrapReplicates,
+#                                       removePcrDuplicates = removePcrDuplicates,
+#                                       analysisMode = analysisMode,
+                                       robust = robust,
+                                       outputDir = outputDir)
+  return(results)
+}
+
+VerifiyIfOutputDirectoryExistsOrIsNotEmpty <- function(outputDir) {
+  outputDirectoryExists <- file.exists(outputDir)
+  outputDirectoryIsNotEmpty <- length(dir(outputDir, all.files=TRUE)) != 0
+  if (outputDirectoryExists || outputDirectoryIsNotEmpty) {
+    stop("Output directory already exists or is not empty. Please delete or change output directory")
+  }
+}

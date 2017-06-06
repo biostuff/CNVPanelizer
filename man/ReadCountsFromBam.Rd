@@ -11,6 +11,7 @@ ReadCountsFromBam(bamFilenames,
                 sampleNames,
                 gr,
                 ampliconNames,
+                minimumMappingQuality = 20,
                 removeDup = FALSE)
 }
 \arguments{
@@ -25,6 +26,9 @@ ReadCountsFromBam(bamFilenames,
   }
   \item{ampliconNames}{
     List of amplicon defining names
+  }
+  \item{minimumMappingQuality}{
+     Specifies the minimum mapping quality
   }
   \item{removeDup}{
   Boolean value to remove duplicates. For reads with the same start site, end site
@@ -52,6 +56,7 @@ ReadCountsFromBam(bamFilenames,
                             sampleNames,
                             gr,
                             ampliconNames,
+                            minimumMappingQuality = 20,
                             removeDup)
     }
 }
