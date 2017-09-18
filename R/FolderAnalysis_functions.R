@@ -923,7 +923,8 @@ PlotBootstrapDistributions  <- function(bootList,
                                         outputFolder = getwd(),
                                         sampleNames = NULL,
                                         save = FALSE,
-                                        scale = 7) {
+                                        scale = 7,
+				        ylim = NULL) {
     selSample <- NULL
     plotList <- foreach(selSample = seq_along(bootList)) %do% {
         test <- as.factor(reportTables[[selSample]][, "Passed"])
@@ -945,12 +946,14 @@ PlotBootstrapDistributions  <- function(bootList,
         # newGeneOrder <- bedToGeneOrder(gr)
         # df$class = with(df,factor(class,levels(class)[newGeneOrder]))
         #}
-
-        ylim1 <- boxplot.stats((df$ratios))$stats[c(1, 5)]
-        ylim1 <- c(max(ylim1),max(ylim1))
-        ylim1 <- log2(ylim1)
-        ylim1 <- ylim1 * c(-scale,scale)
-
+	if(is.null(ylim) || length(ylim)!=2){
+		ylim1 <- boxplot.stats((df$ratios))$stats[c(1, 5)]
+		ylim1 <- c(max(ylim1),max(ylim1))
+		ylim1 <- log2(ylim1)
+		ylim1 <- ylim1 * c(-scale,scale)
+	} else {
+		ylim1 <- ylim	
+	}
         if(is.null(sampleNames)) {
             filename <- names(bootList[selSample])
             filepath <- paste0(outputFolder, "/", filename, "_plot.pdf")
