@@ -151,7 +151,7 @@ NormalizeCounts <- function(allCounts, method = "tmm") {
     #    bamDataRangesNorm <- apply(allCounts, 2, function(x) {x / sum(x)})
     bamDataRangesNorm <- tss(allCounts)
   } else {
-    msg(paste("method", method, "not included in the allowed Normalization methods", allowedNormalizationMethods))
+    message(paste("method", method, "not included in the allowed Normalization methods", allowedNormalizationMethods))
   }
   return(bamDataRangesNorm)
 }
@@ -841,7 +841,7 @@ SelectReferenceSetByKmeans <- function(allSamplesReadCounts, normalizationMethod
     # "centers" is a data frame with one center
     centers <- kmeans.result$centers[kmeans.result$cluster, ]
     distances <- sqrt(rowSums((allSamples - centers)^2))
-    outliers <- order(distances, decreasing=T)[1:numberOfOutliers]
+    outliers <- order(distances, decreasing=TRUE)[1:numberOfOutliers]
     # these rows are top outliers
     message(cat("outliers:", colnames(allSamplesReadCounts)[outliers]))
     allSamples <- t(allSamples)
@@ -904,7 +904,7 @@ SelectReferenceSetFromReadCounts <- function(allSamplesReadCounts,
                                                           normalizationMethod = normalizationMethod,
                                                           referenceMaximumNumberOfElements)
   } else {
-    msg(paste("method", referenceSelectionMethod, "not supported"))
+    message(paste("method", referenceSelectionMethod, "not supported"))
   }
   return(selectedSamplesFilepath)
 }
@@ -930,55 +930,56 @@ revalueDF <- function(myDataFrame, mappings) {
   return(myDataFrame)
 }
 
-ReliableAberrationStatusHeatMap <- function(meanBootResults,
-                                            realiableResults,
-                                            filepath = NULL) {
-  meanBootResults <- melanomaMeanBootResults
-  reliableResults <- melanomaCNVPanelizerResults
-  test_that("testing correct dimensions", {
-    expect_equal(colnames(meanBootResults), colnames(reliableResults))
-    expect_equal(rownames(meanBootResults), rownames(reliableResults))
-  })
-
-  kNormalDefaultValue <- 1.0
-  kAmplificationMaximalValue <- 4.0
-  kAmplificationMinimumValue <- 2.0
-
-  for(i in rownames(reliableResults)) {
-    for(j in colnames(reliableResults)) {
-      if (reliableResults[i,j] == "Normal") {
-        #        print(paste("Normal", i, reliableResults[i,j], "setting ", meanBootResults[i,j],"as", kNormalDefaultValue))
-        meanBootResults[i,j] <- kNormalDefaultValue
-      }
-
-      if ((reliableResults[i,j] == "Amplification") & (meanBootResults[i,j] > kAmplificationMaximalValue)) {
-        print(paste("Too high ", i, reliableResults[i,j], "setting ", meanBootResults[i,j],"as ", kAmplificationMaximalValue))
-        meanBootResults[i,j] <- kAmplificationMaximalValue
-      }
-
-      if ((reliableResults[i,j] == "Amplification") & (meanBootResults[i,j] < kAmplificationMinimumValue)) {
-        print(paste("Amplification too low", i, reliableResults[i,j], "setting ", meanBootResults[i,j],"as", kNormalDefaultValue))
-        meanBootResults[i,j] <- kNormalDefaultValue
-      }
-    }
-  }
-
-  df.team_data <- melt(meanBootResults)
-  colnames(df.team_data) <- c("Gene", "Sample", "Bootratio")
-  g <- ggplot(data = df.team_data,
-              aes(x = Gene, y = Sample)) +
-    #    geom_tile(aes(fill = scale(Bootratio))) +
-    geom_tile(aes(fill = log(Bootratio))) +
-    #      + opts(theme(axis.text.x = element_text(angle = 180, hjust = 1)))
-    #       scale_fill_gradient2(low="darkblue", high="darkgreen", guide="colorbar") +
-    #      scale_fill_gradient2(low="green4", high="red4", guide="colorbar") +
-    scale_fill_gradient2(low = "darkgreen", mid = "white", high = "darkred") +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-    theme(axis.text.y = element_text(size=5))
-  if (!missing(filepath)) {
-    ggsave(filepath)
-  }
-}
+## TODO check this function
+# ReliableAberrationStatusHeatMap <- function(meanBootResults,
+#                                             realiableResults,
+#                                             filepath = NULL) {
+#   meanBootResults <- melanomaMeanBootResults
+#   reliableResults <- melanomaCNVPanelizerResults
+#   test_that("testing correct dimensions", {
+#     expect_equal(colnames(meanBootResults), colnames(reliableResults))
+#     expect_equal(rownames(meanBootResults), rownames(reliableResults))
+#   })
+#
+#   kNormalDefaultValue <- 1.0
+#   kAmplificationMaximalValue <- 4.0
+#   kAmplificationMinimumValue <- 2.0
+#
+#   for(i in rownames(reliableResults)) {
+#     for(j in colnames(reliableResults)) {
+#       if (reliableResults[i,j] == "Normal") {
+#         #        print(paste("Normal", i, reliableResults[i,j], "setting ", meanBootResults[i,j],"as", kNormalDefaultValue))
+#         meanBootResults[i,j] <- kNormalDefaultValue
+#       }
+#
+#       if ((reliableResults[i,j] == "Amplification") & (meanBootResults[i,j] > kAmplificationMaximalValue)) {
+#         print(paste("Too high ", i, reliableResults[i,j], "setting ", meanBootResults[i,j],"as ", kAmplificationMaximalValue))
+#         meanBootResults[i,j] <- kAmplificationMaximalValue
+#       }
+#
+#       if ((reliableResults[i,j] == "Amplification") & (meanBootResults[i,j] < kAmplificationMinimumValue)) {
+#         print(paste("Amplification too low", i, reliableResults[i,j], "setting ", meanBootResults[i,j],"as", kNormalDefaultValue))
+#         meanBootResults[i,j] <- kNormalDefaultValue
+#       }
+#     }
+#   }
+#
+#   df.team_data <- melt(meanBootResults)
+#   colnames(df.team_data) <- c("Gene", "Sample", "Bootratio")
+#   g <- ggplot(data = df.team_data,
+#               aes(x = Gene, y = Sample)) +
+#     #    geom_tile(aes(fill = scale(Bootratio))) +
+#     geom_tile(aes(fill = log(Bootratio))) +
+#     #      + opts(theme(axis.text.x = element_text(angle = 180, hjust = 1)))
+#     #       scale_fill_gradient2(low="darkblue", high="darkgreen", guide="colorbar") +
+#     #      scale_fill_gradient2(low="green4", high="red4", guide="colorbar") +
+#     scale_fill_gradient2(low = "darkgreen", mid = "white", high = "darkred") +
+#     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+#     theme(axis.text.y = element_text(size=5))
+#   if (!missing(filepath)) {
+#     ggsave(filepath)
+#   }
+# }
 
 
 
@@ -1007,7 +1008,7 @@ StatusHeatmap <- function(dfData,
 
   #  colorsRequired <- as.vector(statusColors[as.numeric(names(table(matrixData)))])
 
-  png(file = file.path(filepath),    # create PNG for the heat map
+  png(filename = file.path(filepath),    # create PNG for the heat map
       width = 5*300,        # 5 x 300 pixels
       height = 5*300,
       res = 300,            # 300 pixels per inch
@@ -1086,34 +1087,36 @@ StatusHeatmap <- function(dfData,
   dev.off()
 }
 
-StatusStability <- function(geneNames, sampleNormalizedReadCounts, tmpReferenceNormalizedReadCounts) {
-  centralTendency <-  matrix(rowMeans(tmpReferenceNormalizedReadCounts), ncol = 1)
-  rownames(centralTendency) <- rownames(tmpReferenceNormalizedReadCounts)
-  referenceAndSampleDifferences <- centralTendency - sampleNormalizedReadCounts
-  rownames(referenceAndSampleDifferences) <- rownames(tmpReferenceNormalizedReadCounts)
-  colnames(referenceAndSampleDifferences) <- "difference"
-  uniqueGeneNames <- unique(geneNames)
-  geneStabilityStatus <- c()
-  for (i in seq(uniqueGeneNames)) {
-    geneAmpliconIndexes <- grep(uniqueGeneNames[i], rownames(myReference))
-    geneAmpliconStatus <- referenceAndSampleDifferences[geneAmpliconIndexes, ]
-    allGeneAmpliconsHaveSameStatus <- length(unique(geneAmpliconStatus >= 0))==1
-    geneStabilityStatus <- c(geneStabilityStatus, allGeneAmpliconsHaveSameStatus)
-  }
-  names(geneStabilityStatus) <- uniqueGeneNames
-  return(geneStabilityStatus)
-}
+## TODO check
+# StatusStability <- function(geneNames, sampleNormalizedReadCounts, tmpReferenceNormalizedReadCounts) {
+#   centralTendency <-  matrix(rowMeans(tmpReferenceNormalizedReadCounts), ncol = 1)
+#   rownames(centralTendency) <- rownames(tmpReferenceNormalizedReadCounts)
+#   referenceAndSampleDifferences <- centralTendency - sampleNormalizedReadCounts
+#   rownames(referenceAndSampleDifferences) <- rownames(tmpReferenceNormalizedReadCounts)
+#   colnames(referenceAndSampleDifferences) <- "difference"
+#   uniqueGeneNames <- unique(geneNames)
+#   geneStabilityStatus <- c()
+#   for (i in seq(uniqueGeneNames)) {
+#     geneAmpliconIndexes <- grep(uniqueGeneNames[i], rownames(myReference))
+#     geneAmpliconStatus <- referenceAndSampleDifferences[geneAmpliconIndexes, ]
+#     allGeneAmpliconsHaveSameStatus <- length(unique(geneAmpliconStatus >= 0))==1
+#     geneStabilityStatus <- c(geneStabilityStatus, allGeneAmpliconsHaveSameStatus)
+#   }
+#   names(geneStabilityStatus) <- uniqueGeneNames
+#   return(geneStabilityStatus)
+# }
 
-StatusStabilityTable <- function(geneNames, tmpSamplesNormalizedReadCounts, tmpReferenceNormalizedReadCounts) {
-  statusStabilityTable <- NULL
-  for (i in seq(ncol(tmpSamplesNormalizedReadCounts))) {
-    statusStabilityTable <- cbind(statusStabilityTable, StatusStability(geneNames, matrix(tmpSamplesNormalizedReadCounts[, i], ncol = 1), tmpReferenceNormalizedReadCounts))
-  }
-  colnames(statusStabilityTable) <- colnames(tmpSamplesNormalizedReadCounts)
-  #   statusStabilityTable <- t(statusStabilityTable)
-  #   colnames(statusStabilityTable) <- colnames(tmpSamplesNormalizedReadCounts)
-  return(statusStabilityTable)
-}
+## TODO CHECK
+# StatusStabilityTable <- function(geneNames, tmpSamplesNormalizedReadCounts, tmpReferenceNormalizedReadCounts) {
+#   statusStabilityTable <- NULL
+#   for (i in seq(ncol(tmpSamplesNormalizedReadCounts))) {
+#     statusStabilityTable <- cbind(statusStabilityTable, StatusStability(geneNames, matrix(tmpSamplesNormalizedReadCounts[, i], ncol = 1), tmpReferenceNormalizedReadCounts))
+#   }
+#   colnames(statusStabilityTable) <- colnames(tmpSamplesNormalizedReadCounts)
+#   #   statusStabilityTable <- t(statusStabilityTable)
+#   #   colnames(statusStabilityTable) <- colnames(tmpSamplesNormalizedReadCounts)
+#   return(statusStabilityTable)
+# }
 
 PlotBootstrapDistributions  <- function(bootList,
                                         reportTables,
@@ -1473,7 +1476,7 @@ Strict <- function(cnvPanelizerResults,
   #  table(unlist(cNVPanelizerResultsConsensusAndThreshold))
 
   cNVPanelizerResultsConsensusAndThresholdAndMinimumNumberOfAmplicons <- cNVPanelizerResultsConsensusAndThreshold
-  genesWithMinimumNumberOfAmplicons <- HaveMininumNumberOfAmplicons(genomicRangesFromBed, minimumNumberOfAmplicons)
+  genesWithMinimumNumberOfAmplicons <- HaveMininumNumberOfAmplicons(cnvPanelizerResults@genomicRangesFromBed, minimumNumberOfAmplicons)
   for (rowname in rownames(cNVPanelizerResultsConsensusAndThresholdAndMinimumNumberOfAmplicons)) {
     for (colname in names(genesWithMinimumNumberOfAmplicons)) {
       if ((cNVPanelizerResultsConsensusAndThreshold[rowname, colname] == "Deletion") &
@@ -1497,162 +1500,130 @@ Strict <- function(cnvPanelizerResults,
 
 
 # TODO Could be provided as a measurement of quality for the run
-Overview <- function(
-  #  sampleIdentifier,
-  sampleReadCounts1,
-  referenceReadCounts1,
-  allSamplesReadCounts,
-  genomicRangesFromBed,
-  #  normalizationMethod = "tss",
-  normalizationMethod = "tmm",
-  outputDir = file.path(getwd(), "CNVPanelizer", "overviewKNNReference30")) {
+# Overview <- function(
+#   #  sampleIdentifier,
+#   sampleReadCounts1,
+#   referenceReadCounts1,
+#   allSamplesReadCounts,
+#   genomicRangesFromBed,
+#   #  normalizationMethod = "tss",
+#   normalizationMethod = "tmm",
+#   outputDir = file.path(getwd(), "CNVPanelizer", "overviewKNNReference30")) {
+#
+#   #  sampleIdentifier <- "I:/Run Data/Run S5-56/M1_S5-56_IonXpress_074_rawlib.bam"
+#
+#   #   Overview(allSamplesReadCounts[, filepaths],
+#   #            allSamplesReadCounts[, referenceReadCounts],
+#   #            #         allSamplesReadCounts,
+#   #            genomicRangesFromBed,
+#   #            #                     normalizationMethod = "tss",
+#   #            #                     normalizationMethod = "tmm",
+#   #            outputDir = file.path(getwd(), "CNVPanelizer", "overview"))
+#
+#   sampleReadCounts1 <- allSamplesReadCounts[, filepaths]
+#   #  referenceReadCounts1 <- allSamplesReadCounts[, referenceReadCounts]
+#   referenceReadCounts1 <- allSamplesReadCounts[, referenceFilepathsKmeans]
+#
+#   allSamplesReadCountsNormalized <- NormalizeCounts(allSamplesReadCounts, method = normalizationMethod)
+#   samplesNormalizedReadCounts = allSamplesReadCountsNormalized[, colnames(sampleReadCounts1)]
+#   referenceNormalizedReadCounts = allSamplesReadCountsNormalized[, colnames(referenceReadCounts1)]
+#
+#   runSamples <- samplesNormalizedReadCounts
+#   refSamples <- referenceNormalizedReadCounts
+#   entireSetOfSamples <- allSamplesReadCountsNormalized
+#
+#   geneNames <- unique(genomicRangesFromBed$geneNames)
+#   ampliconNames <- genomicRangesFromBed$ampliconNames
+#   # TODO validate if ampliconNames are the rownames of samples matrices
+#   # ampliconNames <- rownames(allSamplesNormalized)
+#
+#   sampleIdentifiers <- colnames(runSamples)
+#   #sampleIdentifiers <- sampleIdentifiers[1]
+#   for (sampleIdentifier in sampleIdentifiers) {
+#     myDir <- file.path(outputDir, basename(sampleIdentifier))
+#     dir.create(myDir, recursive = TRUE)
+#     for (geneName in geneNames) {
+#       #    geneName <- "BRAF"
+#       myAmpliconsIndexes <- grep(geneName, ampliconNames)
+#       png(file=file.path(myDir, paste0(geneName,'_amplicons.png')),
+#           width=1000,
+#           height=(ceiling(length(myAmpliconsIndexes)/2) * 500))
+#
+#       #    par(mfrow=c(ceiling(length(myAmpliconsIndexes)/2), 2), mar=c(3,3,5,1))
+#       par(mfrow=c(ceiling(length(myAmpliconsIndexes)/2), 2), mar=c(3, 3, 5, 1), oma=c(0,0,7,0))
+#
+#       for (ampliconName in ampliconNames[myAmpliconsIndexes]) {
+#         #  ampliconName <- "chr7_140453102_140453221_BRAF_Ex15-NM_004333"
+#         tmp <- data.frame(y = c(as.vector(runSamples[ampliconName, ])
+#                                 ,as.vector(refSamples[ampliconName, ])
+#                                 ,as.vector(entireSetOfSamples[ampliconName, ])
+#         ),
+#
+#         x = factor(
+#           c(rep("runSamples", length(as.vector(runSamples[ampliconName, ])))
+#             ,rep("refSamples",length(as.vector(refSamples[ampliconName, ])))
+#             ,rep("allSamples",length(as.vector(entireSetOfSamples[ampliconName, ])))
+#           ), levels = c("runSamples", "refSamples", "allSamples"))
+#
+#         #                         x = c(rep("runSamples", length(as.vector(runSamples[ampliconName, ])))
+#         #                               ,rep("refSamples",length(as.vector(refSamples[ampliconName, ])))
+#         #                               )
+#         )
+#
+#         myValues <- runSamples[ampliconName, sampleIdentifier]
+#
+#         boxplot(y~x,
+#                 data=tmp,
+#                 ylab="Read Counts",
+#                 xlab="Sample set",
+#                 names = c("Run Samples", "Reference", "All Samples"),
+#                 #              main = ampliconName)
+#                 main = paste(myValues, ampliconName))
+#         stripchart(y ~ x,
+#                    vertical = TRUE,
+#                    data = tmp,
+#                    method = "jitter",
+#                    add = TRUE,
+#                    #                pch = 20,
+#                    pch = 20,
+#                    col = 'blue')
+#
+#
+#         #    stripchart(list(0.5, 1), vertical=TRUE, add=TRUE, method="stack", col='red', pch="*")
+#         stripchart(myValues, vertical=TRUE, add=TRUE, method="stack", col='red', pch=16, cex=2)
+#       }
+#       title(main = paste(geneName, "-", sampleIdentifier), font.main = 4, outer=TRUE)
+#       dev.off()
+#     }
+#   }
+# }
 
-  #  sampleIdentifier <- "I:/Run Data/Run S5-56/M1_S5-56_IonXpress_074_rawlib.bam"
-
-  #   Overview(allSamplesReadCounts[, filepaths],
-  #            allSamplesReadCounts[, referenceReadCounts],
-  #            #         allSamplesReadCounts,
-  #            genomicRangesFromBed,
-  #            #                     normalizationMethod = "tss",
-  #            #                     normalizationMethod = "tmm",
-  #            outputDir = file.path(getwd(), "CNVPanelizer", "overview"))
-
-  sampleReadCounts1 <- allSamplesReadCounts[, filepaths]
-  #  referenceReadCounts1 <- allSamplesReadCounts[, referenceReadCounts]
-  referenceReadCounts1 <- allSamplesReadCounts[, referenceFilepathsKmeans]
-
-  allSamplesReadCountsNormalized <- NormalizeCounts(allSamplesReadCounts, method = normalizationMethod)
-  samplesNormalizedReadCounts = allSamplesReadCountsNormalized[, colnames(sampleReadCounts1)]
-  referenceNormalizedReadCounts = allSamplesReadCountsNormalized[, colnames(referenceReadCounts1)]
-
-
-  #   tmp <- NormalizeCounts(allSamplesReadCounts, method = normalizationMethod)
-  #   plot(1:length(colnames(tmp)), apply(tmp, 2, sum))
-  #
-  #   tmp <- NormalizeCounts(allSamplesReadCounts, method = "tmm")
-  #   par(mar=c(20,3,1,1))
-  #   plot(
-  # #    1:length(colnames(tmp)),
-  #     apply(tmp, 2, sum),
-  #     cex.names=0.5
-  # #    cex.lab=0.5
-  #     )
-  #
-  #   axis(1,
-  #        at=1:length(colnames(tmp)),
-  # #       labels=basename(colnames(tmp)),
-  #        labels=sapply(strsplit(basename(colnames(tmp)), "\\."), "[[", 1),
-  #
-  #        las = 2)
-
-  #   normalizedReadCounts <- CombinedNormalizedCounts(sampleReadCounts1,
-  #                                                    referenceReadCounts1,
-  #                                                    method = normalizationMethod)
-  #
-  #   # After normalization data sets need to be splitted again to perform bootstrap
-  #   samplesNormalizedReadCounts = normalizedReadCounts["samples"][[1]]
-  #   referenceNormalizedReadCounts = normalizedReadCounts["reference"][[1]]
-
-  runSamples <- samplesNormalizedReadCounts
-  refSamples <- referenceNormalizedReadCounts
-  entireSetOfSamples <- allSamplesReadCountsNormalized
-
-  geneNames <- unique(genomicRangesFromBed$geneNames)
-  ampliconNames <- genomicRangesFromBed$ampliconNames
-  # TODO validate if ampliconNames are the rownames of samples matrices
-  # ampliconNames <- rownames(allSamplesNormalized)
-
-  sampleIdentifiers <- colnames(runSamples)
-  #sampleIdentifiers <- sampleIdentifiers[1]
-  for (sampleIdentifier in sampleIdentifiers) {
-    myDir <- file.path(outputDir, basename(sampleIdentifier))
-    dir.create(myDir, recursive = TRUE)
-    for (geneName in geneNames) {
-      #    geneName <- "BRAF"
-      myAmpliconsIndexes <- grep(geneName, ampliconNames)
-
-      #  pdf(file=paste0(geneName,'_plot.pdf'), width=10, height= ceiling(length(myAmpliconsIndexes)/2) * 5)
-
-
-      #    png(file=paste0(outputFolder, geneName,'_plot.png'),
-
-      #    png(file=paste0(geneName,'_plot.png'),
-      png(file=file.path(myDir, paste0(geneName,'_amplicons.png')),
-          width=1000,
-          height=(ceiling(length(myAmpliconsIndexes)/2) * 500))
-
-      #    par(mfrow=c(ceiling(length(myAmpliconsIndexes)/2), 2), mar=c(3,3,5,1))
-      par(mfrow=c(ceiling(length(myAmpliconsIndexes)/2), 2), mar=c(3, 3, 5, 1), oma=c(0,0,7,0))
-
-      for (ampliconName in ampliconNames[myAmpliconsIndexes]) {
-        #  ampliconName <- "chr7_140453102_140453221_BRAF_Ex15-NM_004333"
-        tmp <- data.frame(y = c(as.vector(runSamples[ampliconName, ])
-                                ,as.vector(refSamples[ampliconName, ])
-                                ,as.vector(entireSetOfSamples[ampliconName, ])
-        ),
-
-        x = factor(
-          c(rep("runSamples", length(as.vector(runSamples[ampliconName, ])))
-            ,rep("refSamples",length(as.vector(refSamples[ampliconName, ])))
-            ,rep("allSamples",length(as.vector(entireSetOfSamples[ampliconName, ])))
-          ), levels = c("runSamples", "refSamples", "allSamples"))
-
-        #                         x = c(rep("runSamples", length(as.vector(runSamples[ampliconName, ])))
-        #                               ,rep("refSamples",length(as.vector(refSamples[ampliconName, ])))
-        #                               )
-        )
-
-        myValues <- runSamples[ampliconName, sampleIdentifier]
-
-        boxplot(y~x,
-                data=tmp,
-                ylab="Read Counts",
-                xlab="Sample set",
-                names = c("Run Samples", "Reference", "All Samples"),
-                #              main = ampliconName)
-                main = paste(myValues, ampliconName))
-        stripchart(y ~ x,
-                   vertical = TRUE,
-                   data = tmp,
-                   method = "jitter",
-                   add = TRUE,
-                   #                pch = 20,
-                   pch = 20,
-                   col = 'blue')
-
-
-        #    stripchart(list(0.5, 1), vertical=TRUE, add=TRUE, method="stack", col='red', pch="*")
-        stripchart(myValues, vertical=TRUE, add=TRUE, method="stack", col='red', pch=16, cex=2)
-      }
-      title(main = paste(geneName, "-", sampleIdentifier), font.main = 4, outer=TRUE)
-      dev.off()
-    }
-  }
-}
-
-#rowIndexesToMerge <- IndexGenesPositions(lungGenomicRanges$geneNames)
-#GeneMultilinePlot(normalSamples, rowIndexesToMerge, normalizationMethod = "tss")
-GeneMultilinePlot <- function(dataSamples, rowIndexesToMerge, normalizationMethod =  "tmm") {
-  dataSamples <- round(NormalizeCounts(dataSamples))
-  result <- NULL
-  for (i in 1:ncol(dataSamples)) {
-    result <- cbind(result, sapply( rowIndexesToMerge, function(x) {mean(dataSamples[x, i])} ))
-  }
-  colnames(result) <- colnames(dataSamples)
-  dataSamples <- result
-  #  dataSamples <- cbind(geneReadCounts = seq_along(rownames(dataSamples)), dataSamples)
-
-  melted <- melt(dataSamples)
-
-  ggplot(data=melted, aes(x=Var1, y=value, group=Var2, colour=Var2, linetype = Var2)) +
-    #geom_line() +
-    #    scale_colour_manual(values = c('pink','orange','white', 'red')) +
-    theme(legend.position="left") +
-    geom_point(aes(color=Var2)) +
-    geom_line(size=1) +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1))
-}
-
+## TODO CHECK THIS
+#
+#
+# #rowIndexesToMerge <- IndexGenesPositions(lungGenomicRanges$geneNames)
+# #GeneMultilinePlot(normalSamples, rowIndexesToMerge, normalizationMethod = "tss")
+# GeneMultilinePlot <- function(dataSamples, rowIndexesToMerge, normalizationMethod =  "tmm") {
+#   dataSamples <- round(NormalizeCounts(dataSamples))
+#   result <- NULL
+#   for (i in 1:ncol(dataSamples)) {
+#     result <- cbind(result, sapply( rowIndexesToMerge, function(x) {mean(dataSamples[x, i])} ))
+#   }
+#   colnames(result) <- colnames(dataSamples)
+#   dataSamples <- result
+#   #  dataSamples <- cbind(geneReadCounts = seq_along(rownames(dataSamples)), dataSamples)
+#
+#   melted <- melt(dataSamples)
+#
+#   ggplot(data=melted, aes(x=Var1, y=value, group=Var2, colour=Var2, linetype = Var2)) +
+#     #geom_line() +
+#     #    scale_colour_manual(values = c('pink','orange','white', 'red')) +
+#     theme(legend.position="left") +
+#     geom_point(aes(color=Var2)) +
+#     geom_line(size=1) +
+#     theme(axis.text.x = element_text(angle = 90, hjust = 1))
+# }
+#
 
 # #Example for testing MultiLinePlot
 # dataSamples <- read.table(text = "CN CNVPanelizer panelcn.mops ioncopy
@@ -1668,36 +1639,36 @@ GeneMultilinePlot <- function(dataSamples, rowIndexesToMerge, normalizationMetho
 #                  CN10 1 0.9 0.8", header=TRUE)
 
 # TODO reuse this code at GeneMultilinePlot ...
-MultiLinePlot <- function(dataSamples, idColumnIdentifier = NULL, title = "", legendPosition = "left", xLabel = "", yLabel = "", smooth = FALSE) {
-  rs <- dataSamples
-  if (is.null(idColumnIdentifier)) {
-    melted = melt(rs)
-  } else {
-    melted = melt(rs, id.vars=idColumnIdentifier)
-  }
-  melted$CN <- as.character(melted$CN)
-  melted$CN <-factor(melted$CN, levels = unique(melted$CN))
-  myPlot <- ggplot(data=melted, aes(x=CN, y=value, group=variable, colour=variable, linetype = variable)) +
-    scale_colour_discrete(name = "Method") + #  scale_colour_manual(values = c('pink','orange','white', 'red')) +
-    ggtitle(title) +
-    geom_point(aes(color=variable)) + # plots the dots..
-    theme(text = element_text(size=10),
-          axis.text.x = element_text(angle=90, hjust=1)) +
-    theme(panel.border = element_blank(),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.line = element_line(colour = "black")) +
-    theme_bw() + # sets the background colour
-    theme(plot.title = element_text(hjust = 0.5)) +
-    theme(legend.position=legendPosition) + xlab(xLabel) + ylab(yLabel)
-  if(smooth) {
-    #      myPlot = myPlot + geom_smooth(method = "loess", se = FALSE, span = 1.5, show.legend = FALSE)
-    myPlot = myPlot + geom_smooth(method = "auto", se = FALSE, span = 1.5, show.legend = FALSE)
-  } else {
-    myPlot = myPlot + geom_line(size = 1, show.legend = FALSE)    # links the dots with lines..
-  }
-  return(myPlot)
-}
+# MultiLinePlot <- function(dataSamples, idColumnIdentifier = NULL, title = "", legendPosition = "left", xLabel = "", yLabel = "", smooth = FALSE) {
+#   rs <- dataSamples
+#   if (is.null(idColumnIdentifier)) {
+#     melted = melt(rs)
+#   } else {
+#     melted = melt(rs, id.vars=idColumnIdentifier)
+#   }
+#   melted$CN <- as.character(melted$CN)
+#   melted$CN <-factor(melted$CN, levels = unique(melted$CN))
+#   myPlot <- ggplot(data=melted, aes(x=CN, y=value, group=variable, colour=variable, linetype = variable)) +
+#     scale_colour_discrete(name = "Method") + #  scale_colour_manual(values = c('pink','orange','white', 'red')) +
+#     ggtitle(title) +
+#     geom_point(aes(color=variable)) + # plots the dots..
+#     theme(text = element_text(size=10),
+#           axis.text.x = element_text(angle=90, hjust=1)) +
+#     theme(panel.border = element_blank(),
+#           panel.grid.major = element_blank(),
+#           panel.grid.minor = element_blank(),
+#           axis.line = element_line(colour = "black")) +
+#     theme_bw() + # sets the background colour
+#     theme(plot.title = element_text(hjust = 0.5)) +
+#     theme(legend.position=legendPosition) + xlab(xLabel) + ylab(yLabel)
+#   if(smooth) {
+#     #      myPlot = myPlot + geom_smooth(method = "loess", se = FALSE, span = 1.5, show.legend = FALSE)
+#     myPlot = myPlot + geom_smooth(method = "auto", se = FALSE, span = 1.5, show.legend = FALSE)
+#   } else {
+#     myPlot = myPlot + geom_line(size = 1, show.legend = FALSE)    # links the dots with lines..
+#   }
+#   return(myPlot)
+# }
 
 
 SampleReadCountsPools <- function(ampliconsReadCounts, numberOfPools) {
@@ -1749,7 +1720,7 @@ PoolsPlots <- function(sampleReadCountsByPool) {
 
 KaryotypeAberrationPlot <- function(bedFilepath,
                                     ampliconColumn,
-                                    status = sample(c("red", "green", "blue"), 30, replace=T),
+                                    status = sample(c("red", "green", "blue"), 30, replace = TRUE),
                                     filepath = "KaryotypeAberrationPlot.png",
                                     width = 1200,
                                     height = 800) {
@@ -1757,10 +1728,11 @@ KaryotypeAberrationPlot <- function(bedFilepath,
   #biocLite("chromPlot")
   #library(chromPlot)
   #library(stringr)
+  hg_gap <- NULL # not sure if this is good solution to avoid 'NOTE'
   data(hg_gap)
   getGeneRegionsStatusSummary <- GetGeneRegionsStatusSummary(bedFilepath = bedFilepath,
                                                              ampliconColumn = ampliconColumn,
-                                                             status = sample(c("red", "green", "blue"), 30, replace=T))
+                                                             status = sample(c("red", "green", "blue"), 30, replace=TRUE))
   geneRegionsBands <- GetGeneRegionsBand(getGeneRegionsStatusSummary)
   png(filepath, width = width, height = height)
   #  chromPlot(gaps=hg_gap)
@@ -1786,7 +1758,7 @@ KaryotypeAberrationPlot <- function(bedFilepath,
 # It Merges all regions related to the same gene and assigns it a color that relates to the aberratiosn status
 # Status should be a vector of colors representing the amplifications (red for amplification, green for deletion and blue for normal)
 GetGeneRegionsStatusSummary <- function(bedFilepath, ampliconColumn = 4, split = "_", status = c("blue")) {
-  a <- read.csv(bedFilepath, sep="\t", skip=1, header=F)
+  a <- read.csv(bedFilepath, sep="\t", skip=1, header = FALSE)
   a[, 1] <- str_replace(a$V1, "chr","")
   a[, ampliconColumn] <- vapply(strsplit(as.vector(a[, ampliconColumn]), "_", fixed = TRUE), "[", "", 1)
   a <- a[,1:4]

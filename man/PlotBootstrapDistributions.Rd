@@ -16,7 +16,7 @@ PlotBootstrapDistributions(bootList,
                            outputFolder = getwd(),
                            sampleNames = NULL,
                            save = FALSE,
-                           scale = 7)
+                           scale = 10)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

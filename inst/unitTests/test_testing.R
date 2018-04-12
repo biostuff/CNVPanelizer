@@ -505,7 +505,7 @@ test.WriteListToXLSXandReadXLSXToList <- function() {
   myList <- list(myDataFrame)
   names(myList) <- dataFrameName
   filepath <- file.path(temporaryDirectory, "samples.xlsx")
-  WriteListToXLSX(myList, filepath)
+  WriteListToXLSX(listOfDataFrames = myList, filepath = filepath)
   checkTrue(file.exists(filepath), msg = paste("xlsx file was not generated at", filepath))
   otherList <- ReadXLSXToList(filepath)
   checkEquals(names(myList), names(otherList))

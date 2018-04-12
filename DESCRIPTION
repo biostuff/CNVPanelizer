@@ -1,8 +1,8 @@
 Package: CNVPanelizer
 Type: Package
 Title: Reliable CNV detection in targeted sequencing applications
-Version: 1.9.0
-Date: 2016-03-18
+Version: 1.10.1
+Date: 2018-04-11
 Authors@R: c(
     person("Cristiano", "Oliveira", email = "cristiano.oliveira@med.uni-heidelberg.de", role = c("aut")),
     person("Thomas", "Wolf", email = "thomas_wolf71@gmx.de", role = c("aut", "cre")),
@@ -19,7 +19,7 @@ Description: A method that allows for the use of a collection of non-matched
     each of the targeted genes. The obtained information allows us to reliably 
     classify the copy number aberrations on the gene level.
 Depends:
-    R (>= 3.2.0),
+    R (>= 3.3.0),
     GenomicRanges
 Suggests:
     knitr,
@@ -37,6 +37,14 @@ Imports:
     foreach,
     ggplot2,
     plyr,
+    GenomeInfoDb,
+    chromPlot,
+    gplots,
+    reshape2,
+    stringr,
+    testthat,
+    graphics,
+    methods,
     openxlsx
 License: GPL-3
 LazyData: false

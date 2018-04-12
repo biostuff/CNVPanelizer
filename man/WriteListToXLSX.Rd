@@ -8,12 +8,21 @@
     Writes list of data frames to an xlsx file
 }
 \usage{
-    WriteListToXLSX(listOfDataFrames, filepath = "list.xlsx")
+    WriteListToXLSX(listOfDataFrames,
+                    multipleFiles = FALSE,
+                    outputFolder = file.path(getwd(), "xlsx"),
+                    filepath = "list.xlsx")
 }
 
 \arguments{
     \item{listOfDataFrames}{
         list of dataframes
+    }
+    \item{multipleFiles}{
+        If should be generated on single file with all results or multiple files
+    }
+    \item{outputFolder}{
+        Output folder
     }
     \item{filepath}{
         filepath

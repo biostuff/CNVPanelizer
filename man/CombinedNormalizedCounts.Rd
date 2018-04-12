@@ -4,12 +4,13 @@
   CombinedNormalizedCounts
 }
 \description{
-    This function makes use of NOISeq::tmm to normalize
+    This function makes use of Total sum scaling or NOISeq::tmm to normalize
     the read counts of all samples and references to the same median read count
 }
 \usage{
     CombinedNormalizedCounts(sampleCounts,
                             referenceCounts,
+                            method,
                             ampliconNames = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -19,6 +20,9 @@
     }
     \item{referenceCounts}{
         Matrix with reference read counts (rows: amplicons, columns: samples)
+    }
+    \item{method}{
+        either "tmm" (trimmed mean of m values) or "tss"(total sum scaling)
     }
     \item{ampliconNames}{
         A vector with  amplicon defining names for the reference and sample matrices
