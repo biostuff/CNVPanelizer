@@ -70,3 +70,18 @@ export(CombinedNormalizedCounts)
 export(WriteListToXLSX)
 export(ReadXLSXToList)
 export(IndexMultipleBams)
+
+# Shiny related
+#export(startApp)
+#export(shinyUI)
+#export(shinyServer)
+export(RunCNVPanelizerShiny)
+
+importFrom(utils, zip)
+import(grid)
+import(shiny)
+import(shinyFiles)
+import(shinyjs)
+import(openxlsx)
+#import(gridExtra)
+#import(data.table)
