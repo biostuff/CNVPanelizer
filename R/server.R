@@ -166,7 +166,8 @@ print(bedFilepath)
     # TODO why create another object..
     myOutput <- list()
     myOutput$outputDirectory <- outputDirectory
-    myOutput$plots <- CNVPanelizerResults@plots
+    print("passei aki..")
+    myOutput$plots <- CNVPanelizerResults$plots
     return(myOutput)
 }
 
@@ -220,6 +221,7 @@ observeEvent(input$Run, {
                                 robust = input$robust,
                                 backgroundSignificanceLevel = input$backgroundSignificanceLevel)
 
+#    output$plot <- renderText({ "funca!!!!!" })
     output$plot <- renderPlot({multiplot(plotlist = result$plots)}, height = length(result$plots) * 300)
     Sys.sleep(5) # by some strange reason, the plot does not display imediately... :S
   # not working..

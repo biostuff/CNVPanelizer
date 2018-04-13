@@ -1233,10 +1233,15 @@ CNVPanelizerFromReadCountsHELPER <- function(sampleReadCounts,
 
   if(length(myCNVPanelizerResults) > 1) {
     for (i in 2:length(myCNVPanelizerResults)) {
-      myCNVPanelizerResultsCompiled@sampleReadCounts <- cbind(myCNVPanelizerResultsCompiled@sampleReadCounts, myCNVPanelizerResults[[i]]@sampleReadCounts)
-      myCNVPanelizerResultsCompiled@bootList <- append(myCNVPanelizerResultsCompiled@bootList, myCNVPanelizerResults[[i]]@bootList)
-      myCNVPanelizerResultsCompiled@backgroundNoise <- append(myCNVPanelizerResultsCompiled@backgroundNoise, myCNVPanelizerResults[[i]]@backgroundNoise)
-      myCNVPanelizerResultsCompiled@reportTables <- append(myCNVPanelizerResultsCompiled@reportTables, myCNVPanelizerResults[[i]]@reportTables)
+      # myCNVPanelizerResultsCompiled@sampleReadCounts <- cbind(myCNVPanelizerResultsCompiled@sampleReadCounts, myCNVPanelizerResults[[i]]@sampleReadCounts)
+      # myCNVPanelizerResultsCompiled@bootList <- append(myCNVPanelizerResultsCompiled@bootList, myCNVPanelizerResults[[i]]@bootList)
+      # myCNVPanelizerResultsCompiled@backgroundNoise <- append(myCNVPanelizerResultsCompiled@backgroundNoise, myCNVPanelizerResults[[i]]@backgroundNoise)
+      # myCNVPanelizerResultsCompiled@reportTables <- append(myCNVPanelizerResultsCompiled@reportTables, myCNVPanelizerResults[[i]]@reportTables)
+
+      myCNVPanelizerResultsCompiled$sampleReadCounts <- cbind(myCNVPanelizerResultsCompiled$sampleReadCounts, myCNVPanelizerResults[[i]]$sampleReadCounts)
+      myCNVPanelizerResultsCompiled$bootList <- append(myCNVPanelizerResultsCompiled$bootList, myCNVPanelizerResults[[i]]$bootList)
+      myCNVPanelizerResultsCompiled$backgroundNoise <- append(myCNVPanelizerResultsCompiled$backgroundNoise, myCNVPanelizerResults[[i]]$backgroundNoise)
+      myCNVPanelizerResultsCompiled$reportTables <- append(myCNVPanelizerResultsCompiled$reportTables, myCNVPanelizerResults[[i]]$reportTables)
     }
   }
   return(myCNVPanelizerResultsCompiled)
@@ -1329,25 +1334,36 @@ CNVPanelizerFromReadCounts <- function(sampleReadCounts,
   # WriteListToXLSX(tmp1@reportTables, filepath = file.path(outputDir, "reportTables.xlsx"))
   # WriteListToXLSX(tmp1@reportTables, filepath = file.path(getwd(), "CNVPanelizer", "reportTables.xlsx"))
 
-  CNVPanelizerResults <- setClass("CNVPanelizerResults",
-                                  #                                  setClass("CNVPanelizerResults",
+  # CNVPanelizerResults <- setClass("CNVPanelizerResults",
+  #                                 #                                  setClass("CNVPanelizerResults",
+  #
+  #                                 # use this function to extract the slot names of the slotNames(results_CNVPanelizer[[1]])
+  #                                 slots = c(sampleReadCounts="matrix",
+  #                                           referenceReadColunts="matrix",
+  #                                           genomicRangesFromBed="GRanges",
+  #                                           bootList="list",
+  #                                           backgroundNoise="list",
+  #                                           plots = "list",
+  #                                           reportTables="list"))
+  #
+  # myCNVPanelizerResults <- CNVPanelizerResults(sampleReadCounts = sampleReadCounts,
+  #                                              referenceReadColunts = referenceReadCounts,
+  #                                              genomicRangesFromBed = genomicRangesFromBed,
+  #                                              bootList = bootList,
+  #                                              backgroundNoise = backgroundNoise,
+  #                                              plots = plots,
+  #                                              reportTables = reportTables)
 
-                                  # use this function to extract the slot names of the slotNames(results_CNVPanelizer[[1]])
-                                  slots = c(sampleReadCounts="matrix",
-                                            referenceReadColunts="matrix",
-                                            genomicRangesFromBed="GRanges",
-                                            bootList="list",
-                                            backgroundNoise="list",
-                                            plots = "list",
-                                            reportTables="list"))
+  myCNVPanelizerResults <- list(sampleReadCounts = sampleReadCounts,
+                               referenceReadColunts = referenceReadCounts,
+                               genomicRangesFromBed = genomicRangesFromBed,
+                               bootList = bootList,
+                               backgroundNoise = backgroundNoise,
+                               plots = plots,
+                               reportTables = reportTables)
 
-  myCNVPanelizerResults <- CNVPanelizerResults(sampleReadCounts = sampleReadCounts,
-                                               referenceReadColunts = referenceReadCounts,
-                                               genomicRangesFromBed = genomicRangesFromBed,
-                                               bootList = bootList,
-                                               backgroundNoise = backgroundNoise,
-                                               plots = plots,
-                                               reportTables = reportTables)
+
+
   return(myCNVPanelizerResults)
 }
 
@@ -1407,17 +1423,19 @@ Strict <- function(cnvPanelizerResults,
                    minimumNumberOfAmplicons = 2
                    #                   , fullConsensusAmongAmplicons = TRUE
 ) {
-  myCNVPanelizerTableResults <- CollectColumnFromAllReportTables(cnvPanelizerResults@reportTables, "ReliableStatus")
+#  myCNVPanelizerTableResults <- CollectColumnFromAllReportTables(cnvPanelizerResults@reportTables, "ReliableStatus")
+  myCNVPanelizerTableResults <- CollectColumnFromAllReportTables(cnvPanelizerResults$reportTables, "ReliableStatus")
   myCNVPanelizerTableResults <- t(myCNVPanelizerTableResults)
   myCNVPanelizerTableResults <- revalueDF(myCNVPanelizerTableResults, c("Normal"=""))
 
   interestingColumn <- "MeanBoot"
-  meanBootResults <- CollectColumnFromAllReportTables(cnvPanelizerResults@reportTables, interestingColumn)
+#  meanBootResults <- CollectColumnFromAllReportTables(cnvPanelizerResults@reportTables, interestingColumn)
+  meanBootResults <- CollectColumnFromAllReportTables(cnvPanelizerResults$reportTables, interestingColumn)
   class(meanBootResults) <- "numeric"
   meanBootResults <- t(meanBootResults)
 
-  #  consensusResults <- ConsensusCheck(cnvPanelizerResults@genomicRangesFromBed, cnvPanelizerResults@sampleReadCounts, cnvPanelizerResults@referenceReadColunts)
-  consensusResults <- ConsensusCheck(cnvPanelizerResults@genomicRangesFromBed, cnvPanelizerResults@sampleReadCounts, cnvPanelizerResults@referenceReadCounts)
+#  consensusResults <- ConsensusCheck(cnvPanelizerResults@genomicRangesFromBed, cnvPanelizerResults@sampleReadCounts, cnvPanelizerResults@referenceReadCounts)
+  consensusResults <- ConsensusCheck(cnvPanelizerResults$genomicRangesFromBed, cnvPanelizerResults$sampleReadCounts, cnvPanelizerResults$referenceReadCounts)
   consensusResults <- t(consensusResults)
 
   test_that("colnames from CNVPanelizer results and Consensus match", {
@@ -1476,7 +1494,8 @@ Strict <- function(cnvPanelizerResults,
   #  table(unlist(cNVPanelizerResultsConsensusAndThreshold))
 
   cNVPanelizerResultsConsensusAndThresholdAndMinimumNumberOfAmplicons <- cNVPanelizerResultsConsensusAndThreshold
-  genesWithMinimumNumberOfAmplicons <- HaveMininumNumberOfAmplicons(cnvPanelizerResults@genomicRangesFromBed, minimumNumberOfAmplicons)
+#  genesWithMinimumNumberOfAmplicons <- HaveMininumNumberOfAmplicons(cnvPanelizerResults@genomicRangesFromBed, minimumNumberOfAmplicons)
+  genesWithMinimumNumberOfAmplicons <- HaveMininumNumberOfAmplicons(cnvPanelizerResults$genomicRangesFromBed, minimumNumberOfAmplicons)
   for (rowname in rownames(cNVPanelizerResultsConsensusAndThresholdAndMinimumNumberOfAmplicons)) {
     for (colname in names(genesWithMinimumNumberOfAmplicons)) {
       if ((cNVPanelizerResultsConsensusAndThreshold[rowname, colname] == "Deletion") &
@@ -1739,17 +1758,20 @@ KaryotypeAberrationPlot <- function(bedFilepath,
   #  chromPlot(gaps=hg_gap, stat=geneRegions, statCol="Value")
   #  chromPlot(gaps=hg_gap, stat=geneRegions, statCol="Value", chr=unique(geneRegions$Chrom))
   #  chromPlot(gaps=hg_gap, bands=hg_cytoBandIdeo, stat=geneRegions, statCol="Value", chr=unique(geneRegions$Chrom), statName="Value", noHist=TRUE, figCols=5, cex=0.7, statTyp="n", chrSide=c(1,1,1,1,1,1,-1,1))
-  karyotypeAberrationPlot <- chromPlot(gaps = hg_gap,
-                                       bands = geneRegionsBands,
-                                       chr = unique(getGeneRegionsStatusSummary$Chrom),
-                                       stat = getGeneRegionsStatusSummary,
-                                       statCol = "Value",
-                                       statName = "Value",
-                                       noHist = TRUE,
-                                       figCols = 7,
-                                       cex = 0.7,
-                                       statTyp = "n",
-                                       chrSide = c(1,1,1,1,1,1,-1,1))
+
+  # TODO TEMPORARARIO PORQUE O chromPlot nao pode ser instalado em versao 3.2.0 ...
+  # karyotypeAberrationPlot <- chromPlot(gaps = hg_gap,
+  #                                      bands = geneRegionsBands,
+  #                                      chr = unique(getGeneRegionsStatusSummary$Chrom),
+  #                                      stat = getGeneRegionsStatusSummary,
+  #                                      statCol = "Value",
+  #                                      statName = "Value",
+  #                                      noHist = TRUE,
+  #                                      figCols = 7,
+  #                                      cex = 0.7,
+  #                                      statTyp = "n",
+  #                                      chrSide = c(1,1,1,1,1,1,-1,1))
+  karyotypeAberrationPlot <- NA
   dev.off()
   return(karyotypeAberrationPlot)
 }

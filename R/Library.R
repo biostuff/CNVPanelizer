@@ -95,6 +95,10 @@ EmptySessionOutputDirectory <- function(session) {
   print(list.files(GetSessionOutputDirectory(session)))
 }
 
+## find process at port 8100
+# sudo lsof -n -i :8100 | grep LISTEN
+# kill processID
+#
 
 #runCNVPanelizerShiny <- function(dataset=NULL, port=8100,...) {
 RunCNVPanelizerShiny <- function(port=8100) {
