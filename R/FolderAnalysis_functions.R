@@ -1355,7 +1355,7 @@ CNVPanelizerFromReadCounts <- function(sampleReadCounts,
   #                                              reportTables = reportTables)
 
   myCNVPanelizerResults <- list(sampleReadCounts = sampleReadCounts,
-                               referenceReadColunts = referenceReadCounts,
+                               referenceReadCounts = referenceReadCounts,
                                genomicRangesFromBed = genomicRangesFromBed,
                                bootList = bootList,
                                backgroundNoise = backgroundNoise,
