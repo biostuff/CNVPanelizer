@@ -20,7 +20,7 @@
 }
 
 \arguments{
-    \item{samplesReadCounts}{
+    \item{sampleReadCounts}{
         samples read counts matrix
     }
     \item{referenceReadCounts}{
@@ -41,7 +41,7 @@
     \item{backgroundSignificanceLevel}{
        The background Significance Level
     }
-    \item{outputDirectory}{
+    \item{outputDir}{
        Output directory
     }
     \item{splitSize}{

@@ -989,7 +989,7 @@ StatusHeatmap <- function(dfData,
                                            "Normal" = "green",
                                            #                                         " " = "green",
                                            "Amplification" = "red"),
-                          header = "",
+                          header = "Status Heatmap",
                           filepath = "CNVPanelizerHeatMap.png") {
 
   mappings <- seq(length(statusColors))
@@ -1195,12 +1195,7 @@ PlotBootstrapDistributions  <- function(bootList,
 CNVPanelizerFromReadCountsHELPER <- function(sampleReadCounts,
                                              referenceReadCounts,
                                              genomicRangesFromBed,
-                                             #                                        bedFilepath,
-                                             #                                        amplColumnNumber = 6,
-                                             #                                       minimumMappingQuality = 20,
                                              numberOfBootstrapReplicates = 10000,
-                                             #                                       removePcrDuplicates = TRUE,
-                                             #                                      analysisMode = "gene",   # analysisMode can be "gene" or "amplicon"
                                              normalizationMethod = "tmm",
                                              robust = TRUE,
                                              backgroundSignificanceLevel = 0.05,

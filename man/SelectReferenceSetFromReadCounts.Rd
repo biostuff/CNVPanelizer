@@ -26,6 +26,9 @@ SelectReferenceSetFromReadCounts(allSamplesReadCounts,
     \item{referenceMaximumNumberOfElements}{
         Maximum number of elements to consider as reference (only to be used in case interquantile reference selection method)
     }
+    \item{referenceSelectionMethod}{
+        Reference selection method ("kmeans", ...)
+    }
     \item{lowerBoundPercentage}{
     	Lower bound percentage (only to be used in case interquantile reference selection method)
     }
