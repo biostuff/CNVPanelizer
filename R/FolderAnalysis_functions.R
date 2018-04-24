@@ -1228,11 +1228,6 @@ CNVPanelizerFromReadCountsHELPER <- function(sampleReadCounts,
 
   if(length(myCNVPanelizerResults) > 1) {
     for (i in 2:length(myCNVPanelizerResults)) {
-      # myCNVPanelizerResultsCompiled@sampleReadCounts <- cbind(myCNVPanelizerResultsCompiled@sampleReadCounts, myCNVPanelizerResults[[i]]@sampleReadCounts)
-      # myCNVPanelizerResultsCompiled@bootList <- append(myCNVPanelizerResultsCompiled@bootList, myCNVPanelizerResults[[i]]@bootList)
-      # myCNVPanelizerResultsCompiled@backgroundNoise <- append(myCNVPanelizerResultsCompiled@backgroundNoise, myCNVPanelizerResults[[i]]@backgroundNoise)
-      # myCNVPanelizerResultsCompiled@reportTables <- append(myCNVPanelizerResultsCompiled@reportTables, myCNVPanelizerResults[[i]]@reportTables)
-
       myCNVPanelizerResultsCompiled$sampleReadCounts <- cbind(myCNVPanelizerResultsCompiled$sampleReadCounts, myCNVPanelizerResults[[i]]$sampleReadCounts)
       myCNVPanelizerResultsCompiled$bootList <- append(myCNVPanelizerResultsCompiled$bootList, myCNVPanelizerResults[[i]]$bootList)
       myCNVPanelizerResultsCompiled$backgroundNoise <- append(myCNVPanelizerResultsCompiled$backgroundNoise, myCNVPanelizerResults[[i]]$backgroundNoise)
@@ -1242,16 +1237,75 @@ CNVPanelizerFromReadCountsHELPER <- function(sampleReadCounts,
   return(myCNVPanelizerResultsCompiled)
 }
 
+######################################################################################
+# still on testing..
+######################################################################################
+# CNVPanelizerFromReadCountsHelperParallel <- function(sampleReadCounts,
+#                                                      referenceReadCounts,
+#                                                      genomicRangesFromBed,
+#                                                      numberOfBootstrapReplicates = 10000,
+#                                                      normalizationMethod = "tmm",
+#                                                      robust = TRUE,
+#                                                      backgroundSignificanceLevel = 0.05,
+#                                                      outputDir = file.path(getwd(), "CNVPanelizer"),
+#                                                      splitSize = 5) {
+#
+#   myCNVPanelizerResults <- list()
+#
+#   splits <- split(1:ncol(sampleReadCounts), ceiling(seq_along(1:ncol(sampleReadCounts))/splitSize))
+#
+#   # Use the detectCores() function to find the number of cores in system
+#   no_cores <- detectCores()
+#   # Setup cluster
+#   clust <- makeCluster(no_cores - 1)
+#   clusterExport(clust,
+#                 varlist = c(
+#                   "sampleReadCounts",
+#                   "referenceReadCounts",
+#                   "genomicRangesFromBed",
+#                   "numberOfBootstrapReplicates",
+#                   "normalizationMethod",
+#                   "robust",
+#                   "backgroundSignificanceLevel",
+#                   "outputDir",
+#                   "CNVPanelizerFromReadCounts"),
+#                 envir = environment())
+#
+#   myCNVPanelizerResults <- parLapply(clust, 1:length(splits), function(i) {
+#     CNVPanelizerFromReadCounts(sampleReadCounts[, splits[[i]]],
+#                                referenceReadCounts,
+#                                genomicRangesFromBed,
+#                                numberOfBootstrapReplicates = numberOfBootstrapReplicates,
+#                                normalizationMethod = normalizationMethod,
+#                                robust = robust,
+#                                backgroundSignificanceLevel = backgroundSignificanceLevel,
+#                                outputDir = outputDir)
+#   })
+#   stopCluster(clust)
+#
+#   n <- length(myCNVPanelizerResults)
+#   res <- NULL
+#   for (i in seq(n)) {
+#     res <- cbind(res, myCNVPanelizerResults[[i]])
+#   }
+#
+#   myCNVPanelizerResultsCompiled <- myCNVPanelizerResults[[1]]
+#
+#   if(length(myCNVPanelizerResults) > 1) {
+#     for (i in 2:length(myCNVPanelizerResults)) {
+#       myCNVPanelizerResultsCompiled$sampleReadCounts <- cbind(myCNVPanelizerResultsCompiled$sampleReadCounts, myCNVPanelizerResults[[i]]$sampleReadCounts)
+#       myCNVPanelizerResultsCompiled$bootList <- append(myCNVPanelizerResultsCompiled$bootList, myCNVPanelizerResults[[i]]$bootList)
+#       myCNVPanelizerResultsCompiled$backgroundNoise <- append(myCNVPanelizerResultsCompiled$backgroundNoise, myCNVPanelizerResults[[i]]$backgroundNoise)
+#       myCNVPanelizerResultsCompiled$reportTables <- append(myCNVPanelizerResultsCompiled$reportTables, myCNVPanelizerResults[[i]]$reportTables)
+#     }
+#   }
+#   return(myCNVPanelizerResultsCompiled)
+# }
 
 CNVPanelizerFromReadCounts <- function(sampleReadCounts,
                                        referenceReadCounts,
                                        genomicRangesFromBed,
-                                       #                                        bedFilepath,
-                                       #                                        amplColumnNumber = 6,
-                                       #                                       minimumMappingQuality = 20,
                                        numberOfBootstrapReplicates = 10000,
-                                       #                                       removePcrDuplicates = TRUE,
-                                       #                                      analysisMode = "gene",   # analysisMode can be "gene" or "amplicon"
                                        normalizationMethod = "tmm",
                                        robust = TRUE,
                                        backgroundSignificanceLevel = 0.05,
