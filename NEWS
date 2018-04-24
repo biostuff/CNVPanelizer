@@ -1,8 +1,14 @@
+CHANGES IN VERSION 1.10.0
+-----------------------
+
+	o Add Shiny GUI
+
+
 CHANGES IN VERSION 0.99.12
 -----------------------
 
-  o Add robust as option to calculate Background calculation,
-    then replacing mean with median and sd with mad
+	o Add robust as option to calculate Background calculation,
+    	  then replacing mean with median and sd with mad
 
 
 CHANGES IN VERSION 0.99.11
