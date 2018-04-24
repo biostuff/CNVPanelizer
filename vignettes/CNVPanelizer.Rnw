@@ -7,9 +7,9 @@
 
 \documentclass{article}
 
-% For squares with numbers 
+% For squares with numbers
 % (it was not showing the list of references at the end..)
-%\usepackage[style=numeric,backend=bibtex]{biblatex}  
+%\usepackage[style=numeric,backend=bibtex]{biblatex}
 \usepackage[backend=bibtex]{biblatex} % For squares with text
 %  For name and year
 %\usepackage[style=authoryear,natbib=true,backend=bibtex]{biblatex}
@@ -34,7 +34,7 @@
 
 % this needs to be after the usepackage otherwise
 % the references do no show at the end ?!?!
-%\addbibresource{CNVPanelizer.bib} % Specifying the packages.bib file 
+%\addbibresource{CNVPanelizer.bib} % Specifying the packages.bib file
 
 \title{CNVPanelizer: Reliable CNV detection in target sequencing applications}
 
@@ -305,7 +305,7 @@ mad (median absolute deviation) replaces sd. The upper bound ratio has to be
 below the lower noise (deletion) or the lower bound ratio above the upper noise
 (amplification) to be considered reliable.
 
-<<BackgroundNoise, echo = TRUE>>=
+<<BackgroundNoise, echo = TRUE, message=FALSE, warning=FALSE>>=
 
 # Estimate the background noise left after normalization
 backgroundNoise <- Background(geneNames,
@@ -364,7 +364,8 @@ sampleIndexToShow = 2
 # TODO improve this.. remove the column..
 # but for now just hide "Signif." column... no space available
 #indexToHide <- which(colnames(reportTables[[1]])=="Signif.")
-indexToHide <- which(colnames(reportTables[[1]])=="MeanRatio")
+#indexToHide <- which(colnames(reportTables[[1]])=="MeanRatio")
+indexToHide <- which(colnames(reportTables[[1]]) %in% c("MeanRatio", "Passed"))
 
 reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, -c(indexToHide)]
 #reportTables[[sampleIndexToShow]][1:numberOfGenesViewport, ]
@@ -456,6 +457,20 @@ PlotBootstrapDistributions(bootList, reportTables)
 % \end{figure}
 
 
+
+\subsection{Shiny App}
+
+To allow a more user friendly interaction and quick testing of CNVPanelizer, a
+shiny app is made available through the following command:
+
+<<RunCNVPanelizerShiny, echo = TRUE, eval=FALSE>>=
+# default port is 8100
+RunCNVPanelizerShiny(port = 8080)
+@
+
+
+
+
 \begin{landscape}
 
 <<BootstrapPlot, echo=F, fig.align='center', fig.cap='Plot for a single test sample', fig.height=4, fig.width=10, message=FALSE, warning=FALSE>>=
@@ -475,7 +490,7 @@ PlotBootstrapDistributions(bootList, reportTables)[[sampleIndexToShow]]
   \caption{Description of the CNV detection levels}
 \end{table}
 
-% 
+%
 % \begin{center}
 %     \begin{tabular}{| l | l | l |  p{15cm} |}
 %     \hline
@@ -492,13 +507,13 @@ PlotBootstrapDistributions(bootList, reportTables)[[sampleIndexToShow]]
 %     \hline
 %     \end{tabular}
 % \end{center}
-% 
+%
 % With width specified:
 % \begin{center}
 %     \begin{tabular}{ | l | l | l | p{5cm} |}
 %     \hline
 %     Day & Min Temp & Max Temp & Summary \\ \hline
-%     Monday & 11C & 22C & A clear day with lots of sunshine.  
+%     Monday & 11C & 22C & A clear day with lots of sunshine.
 %     However, the strong breeze will bring down the temperatures. \\ \hline
 %     Tuesday & 9C & 19C & Cloudy with rain, across many northern regions.
 %     Clear spells
