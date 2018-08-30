@@ -17,8 +17,9 @@ You can install the stable version on
 [Bioconductor](http://www.bioconductor.org/packages/release/bioc/html/CNVPanelizer.html)
 
 ```r
-source("http://bioconductor.org/biocLite.R")
-biocLite("CNVPanelizer")
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("CNVPanelizer")
 
 ```
 

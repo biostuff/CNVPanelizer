@@ -95,8 +95,9 @@ be installed and loaded using the following R commands:
 
 <<InstallingPackage, echo=TRUE, eval=FALSE, message=FALSE>>=
 # To install from Bioconductor
-source("http://bioconductor.org/biocLite.R")
-biocLite("CNVPanelizer")
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("CNVPanelizer")
 @
 
 <<LoadingPackage, echo=TRUE, message=FALSE, warning = FALSE>>=
