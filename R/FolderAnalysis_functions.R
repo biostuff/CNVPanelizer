@@ -1792,8 +1792,9 @@ KaryotypeAberrationPlot <- function(bedFilepath,
                                     filepath = "KaryotypeAberrationPlot.png",
                                     width = 1200,
                                     height = 800) {
-  #source("https://bioconductor.org/biocLite.R")
-  #biocLite("chromPlot")
+  #if (!requireNamespace("BiocManager", quietly=TRUE))
+      #install.packages("BiocManager")
+  #BiocManager::install("chromPlot")
   #library(chromPlot)
   #library(stringr)
   hg_gap <- NULL # not sure if this is good solution to avoid 'NOTE'
