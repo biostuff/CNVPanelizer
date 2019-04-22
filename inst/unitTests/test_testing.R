@@ -114,10 +114,10 @@ test.bootList <- function() {
   print(paste("GENE 2: " , resultForGENE2))
 
   tolerance <- 0.0001
-  checkEquals(resultForGENE1, 0.125,
+  checkEquals(resultForGENE1, 0.16667,
               checkNames = FALSE,
               tolerance = tolerance)
-  checkEquals(resultForGENE2, 0.3302891,
+  checkEquals(resultForGENE2, 0.35634,
               checkNames = FALSE,
               tolerance = tolerance)
 }
